@@ -1,0 +1,16 @@
+﻿namespace RentACar.Application.DTOs.CompanyDtos;
+
+public class CompanyGetDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = null!;
+    public string RegistrationNumber { get; set; } = null!;
+    public string Address { get; set; } = null!;
+    public int OwnerId { get; set; }
+    public string OwnerName { get; set; } = null!;
+    public DateTime CreatedAt { get; set; }
+
+    // Əlavə məlumat
+    public List<string> CarNames { get; set; } = new();
+}
+
