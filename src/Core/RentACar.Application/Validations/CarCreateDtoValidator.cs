@@ -7,7 +7,7 @@ public class CarCreateDtoValidator : AbstractValidator<CarCreateDto>
 {
     public CarCreateDtoValidator()
     {
-        RuleFor(x => x.OwnerId).GreaterThan(0);
+        
         RuleFor(x => x.Brand).NotEmpty().MaximumLength(80);
         RuleFor(x => x.Model).NotEmpty().MaximumLength(80);
         RuleFor(x => x.Year)

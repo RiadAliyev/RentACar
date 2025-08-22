@@ -2,7 +2,7 @@
 
 public class CarImageCreateDto
 {
-    public int CarId { get; set; }
+    public Guid CarId { get; set; }
     public string ImageUrl { get; set; } = null!;
 }
 

@@ -2,8 +2,8 @@
 
 public class CarFeatureAssignment: BaseEntity
 {
-    public int CarId { get; set; }
-    public int FeatureId { get; set; }
+    public Guid CarId { get; set; }
+    public Guid FeatureId { get; set; }
 
     public Car Car { get; set; } = null!;
     public CarFeature Feature { get; set; } = null!;

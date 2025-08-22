@@ -7,8 +7,7 @@ public class BookingCreateDtoValidator : AbstractValidator<BookingCreateDto>
 {
     public BookingCreateDtoValidator()
     {
-        RuleFor(x => x.CarId).GreaterThan(0);
-        RuleFor(x => x.CustomerId).GreaterThan(0);
+        
         RuleFor(x => x.StartDate)
             .LessThan(x => x.EndDate)
             .WithMessage("Start date must be before end date.");

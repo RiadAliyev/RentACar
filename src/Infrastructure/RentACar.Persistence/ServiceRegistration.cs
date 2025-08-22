@@ -1,6 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RentACar.Application.Abstracts.Repositories;
+using RentACar.Application.Abstracts.Services;
+using RentACar.Infrastructure.Services;
 using RentACar.Persistence.Repositories;
+using RentACar.Persistence.Services;
 
 namespace RentACar.Persistence;
 
@@ -21,7 +24,10 @@ public static class ServiceRegistration
         #endregion
 
         #region Services
-
+        services.AddScoped<IBookingService, BookingService>();
+        services.AddScoped<ICarFeatureService, CarFeatureService>();
+        services.AddScoped<ICarImageService, CarImageService>();
+        
 
 
 

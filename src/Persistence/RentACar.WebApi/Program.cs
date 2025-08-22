@@ -12,10 +12,19 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer(); // Swagger üçün vacibdir
+builder.Services.AddSwaggerGen();
+
+
 builder.Services.AddDbContext<RentACarDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
 });
+
+
+
+
+
 
 builder.Services.AddValidatorsFromAssembly(typeof(UserCreateDtoValidator).Assembly);
 builder.Services.AddFluentValidationAutoValidation();
@@ -26,6 +35,12 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));//servic
 builder.Services.RegisterService();
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 // Configure the HTTP request pipeline.
 

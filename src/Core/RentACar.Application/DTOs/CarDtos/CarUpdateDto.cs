@@ -4,7 +4,7 @@ namespace RentACar.Application.DTOs.CarDtos;
 
 public class CarUpdateDto
 {
-    public int? CompanyId { get; set; }
+    public Guid? CompanyId { get; set; }
     public string Brand { get; set; } = null!;
     public string Model { get; set; } = null!;
     public short Year { get; set; }
@@ -16,7 +16,7 @@ public class CarUpdateDto
     public bool IsApproved { get; set; }
 
     // Yenilənə bilən əlavə məlumatlar
-    public List<int>? FeatureIds { get; set; }
+    public List<Guid>? FeatureIds { get; set; }
     public List<string>? ImageUrls { get; set; }
 }
 

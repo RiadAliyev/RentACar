@@ -2,8 +2,8 @@
 
 public class Review: BaseEntity
 {
-    public int CarId { get; set; }
-    public int CustomerId { get; set; }
+    public Guid CarId { get; set; }
+    public Guid CustomerId { get; set; }
     public byte Rating { get; set; }
     public string Comment { get; set; } = null!;
 

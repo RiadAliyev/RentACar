@@ -2,8 +2,8 @@
 
 public class PaymentGetDto
 {
-    public int Id { get; set; }
-    public int BookingId { get; set; }
+    public Guid Id { get; set; }
+    public Guid BookingId { get; set; }
     public decimal Amount { get; set; }
     public string PaymentMethod { get; set; } = null!; // enum string kimi
     public bool IsSuccessful { get; set; }

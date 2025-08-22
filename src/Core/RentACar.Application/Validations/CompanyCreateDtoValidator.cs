@@ -7,7 +7,7 @@ public class CompanyCreateDtoValidator : AbstractValidator<CompanyCreateDto>
 {
     public CompanyCreateDtoValidator()
     {
-        RuleFor(x => x.OwnerId).GreaterThan(0);
+        
         RuleFor(x => x.Name).NotEmpty().MaximumLength(160);
         RuleFor(x => x.RegistrationNumber).NotEmpty().MaximumLength(60);
         RuleFor(x => x.Address).NotEmpty().MaximumLength(300);

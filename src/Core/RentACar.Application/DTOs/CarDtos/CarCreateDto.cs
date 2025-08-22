@@ -4,8 +4,8 @@ namespace RentACar.Application.DTOs.CarDtos;
 
 public class CarCreateDto
 {
-    public int OwnerId { get; set; }
-    public int? CompanyId { get; set; }
+    public Guid OwnerId { get; set; }
+    public Guid? CompanyId { get; set; }
     public string Brand { get; set; } = null!;
     public string Model { get; set; } = null!;
     public short Year { get; set; }
@@ -17,7 +17,7 @@ public class CarCreateDto
     public bool IsApproved { get; set; }
 
     // Əlavə: xüsusiyyətlər və şəkillər id-lər siyahısı
-    public List<int>? FeatureIds { get; set; }
+    public List<Guid>? FeatureIds { get; set; }
     public List<string>? ImageUrls { get; set; }
 }
 

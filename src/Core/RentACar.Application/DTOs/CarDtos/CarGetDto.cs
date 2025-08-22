@@ -1,17 +1,19 @@
-﻿namespace RentACar.Application.DTOs.CarDtos;
+﻿using RentACar.Domain.Enums;
+
+namespace RentACar.Application.DTOs.CarDtos;
 
 public class CarGetDto
 {
-    public int Id { get; set; }
-    public int OwnerId { get; set; }
+    public Guid Id { get; set; }
+    public Guid OwnerId { get; set; }
     public string OwnerName { get; set; } = null!;
-    public int? CompanyId { get; set; }
+    public Guid? CompanyId { get; set; }
     public string? CompanyName { get; set; }
     public string Brand { get; set; } = null!;
     public string Model { get; set; } = null!;
     public short Year { get; set; }
-    public string TransmissionType { get; set; } = null!;
-    public string FuelType { get; set; } = null!;
+    public TransmissionType TransmissionType { get; set; }
+    public FuelType FuelType { get; set; }
     public byte Seats { get; set; }
     public decimal DailyPrice { get; set; }
     public string Location { get; set; } = null!;

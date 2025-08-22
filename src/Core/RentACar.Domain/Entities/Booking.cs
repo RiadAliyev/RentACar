@@ -4,8 +4,8 @@ namespace RentACar.Domain.Entities;
 
 public class Booking: BaseEntity
 {
-    public int CarId { get; set; }
-    public int CustomerId { get; set; }
+    public Guid CarId { get; set; }
+    public Guid CustomerId { get; set; }
     public DateOnly StartDate { get; set; }
     public DateOnly EndDate { get; set; }
     public decimal TotalPrice { get; set; }
