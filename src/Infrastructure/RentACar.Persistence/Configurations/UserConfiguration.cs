@@ -4,9 +4,9 @@ using RentACar.Domain.Entities;
 
 namespace RentACar.Persistence.Configurations;
 
-public sealed class UserConfiguration : IEntityTypeConfiguration<User>
+public sealed class UserConfiguration : IEntityTypeConfiguration<AppUser>
 {
-    public void Configure(EntityTypeBuilder<User> b)
+    public void Configure(EntityTypeBuilder<AppUser> b)
     {
         b.ToTable("Users");
         b.HasKey(x => x.Id);
@@ -16,7 +16,6 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         b.Property(x => x.PhoneNumber).HasMaxLength(32);
         b.Property(x => x.PasswordHash).IsRequired().HasMaxLength(256);
 
-        b.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
 
         b.HasIndex(x => x.Email).IsUnique();
         b.HasIndex(x => x.PhoneNumber);

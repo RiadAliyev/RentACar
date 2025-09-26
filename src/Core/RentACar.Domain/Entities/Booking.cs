@@ -13,7 +13,7 @@ public class Booking: BaseEntity
     public BookingStatus Status { get; set; }
 
     public Car Car { get; set; } = null!;
-    public User Customer { get; set; } = null!;
+    public AppUser Customer { get; set; } = null!;
     public ICollection<Payment> Payments { get; set; } = new List<Payment>();
 }
 

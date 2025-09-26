@@ -73,36 +73,36 @@ public class CompanyController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Filtrlənmiş şirkət siyahısı gətirir
-    /// </summary>
-    [HttpPost("filter post")]
-    public async Task<IActionResult> GetByFilter([FromBody] CompanyFilterDto filter)
-    {
-        var response = await _companyService.GetByFilterAsync(filter);
-        return StatusCode((int)response.StatusCode, response);
-    }
+    ///// <summary>
+    ///// Filtrlənmiş şirkət siyahısı gətirir
+    ///// </summary>
+    //[HttpPost("filter post")]
+    //public async Task<IActionResult> GetByFilter([FromBody] CompanyFilterDto filter)
+    //{
+    //    var response = await _companyService.GetByFilterAsync(filter);
+    //    return StatusCode((int)response.StatusCode, response);
+    //}
 
-    /// <summary>
-    /// Filtrlənmiş şirkət siyahısı gətirir (query string ilə)
-    /// Məs: /api/company/filter?name=Tesla&address=Baku
-    /// </summary>
-    [HttpGet("filter get")]
-    public async Task<IActionResult> GetByFilter(
-        [FromQuery] string? name,
-        [FromQuery] string? registrationNumber,
-        [FromQuery] string? address,
-        [FromQuery] Guid? ownerId)
-    {
-        var filter = new CompanyFilterDto
-        {
-            Name = name,
-            RegistrationNumber = registrationNumber,
-            Address = address,
-            OwnerId = ownerId
-        };
+    ///// <summary>
+    ///// Filtrlənmiş şirkət siyahısı gətirir (query string ilə)
+    ///// Məs: /api/company/filter?name=Tesla&address=Baku
+    ///// </summary>
+    //[HttpGet("filter get")]
+    //public async Task<IActionResult> GetByFilter(
+    //    [FromQuery] string? name,
+    //    [FromQuery] string? registrationNumber,
+    //    [FromQuery] string? address,
+    //    [FromQuery] Guid? ownerId)
+    //{
+    //    var filter = new CompanyFilterDto
+    //    {
+    //        Name = name,
+    //        RegistrationNumber = registrationNumber,
+    //        Address = address,
+    //        OwnerId = ownerId
+    //    };
 
-        var response = await _companyService.GetByFilterAsync(filter);
-        return StatusCode((int)response.StatusCode, response);
-    }
+    //    var response = await _companyService.GetByFilterAsync(filter);
+    //    return StatusCode((int)response.StatusCode, response);
+    //}
 }

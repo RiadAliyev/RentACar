@@ -8,6 +8,6 @@ public class Review: BaseEntity
     public string Comment { get; set; } = null!;
 
     public Car Car { get; set; } = null!;
-    public User Customer { get; set; } = null!;
+    public AppUser Customer { get; set; } = null!;
 }
 

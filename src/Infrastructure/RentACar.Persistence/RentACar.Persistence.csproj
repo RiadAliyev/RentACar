@@ -8,10 +8,10 @@
 
   <ItemGroup>
     <Folder Include="Migrations\" />
-    <Folder Include="Services\" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.19" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.19">
       <PrivateAssets>all</PrivateAssets>
@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Core\RentACar.Application\RentACar.Application.csproj" />
     <ProjectReference Include="..\..\Core\RentACar.Domain\RentACar.Domain.csproj" />
+    <ProjectReference Include="..\RentACar.Infrastructure\RentACar.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

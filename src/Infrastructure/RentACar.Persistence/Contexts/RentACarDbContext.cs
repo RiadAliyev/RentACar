@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using RentACar.Domain.Entities;
 
 namespace RentACar.Persistence.Contexts;
 
-public class RentACarDbContext:DbContext
+public class RentACarDbContext: IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>
 {
     public RentACarDbContext(DbContextOptions<RentACarDbContext> options) : base(options)
     {
@@ -14,7 +16,6 @@ public class RentACarDbContext:DbContext
         base.OnModelCreating(modelBuilder);
     }
 
-    public DbSet<User> Users { get; set; }
     public DbSet<Company> Companies { get; set; }
     public DbSet<Car> Cars { get; set; }
     public DbSet<CarFeature> CarFeatures { get; set; }

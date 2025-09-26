@@ -19,7 +19,6 @@ public static class ServiceRegistration
         services.AddScoped<ICompanyRepository, CompanyRepository>();
         services.AddScoped<IPaymentRepository, PaymentRepository>();
         services.AddScoped<IReviewRepository, ReviewRepository>();
-        services.AddScoped<IUserRepository, UserRepository>();
 
         #endregion
 
@@ -27,7 +26,15 @@ public static class ServiceRegistration
         services.AddScoped<IBookingService, BookingService>();
         services.AddScoped<ICarFeatureService, CarFeatureService>();
         services.AddScoped<ICarImageService, CarImageService>();
-        
+        services.AddScoped<IFileService, CloudinaryService>();
+        services.AddScoped<ICarService, CarService>();
+        services.AddScoped<ICompanyService, CompanyService>();
+        services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<IReviewService, ReviewService>();
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IRoleService, RoleService>();
+
+
 
 
 

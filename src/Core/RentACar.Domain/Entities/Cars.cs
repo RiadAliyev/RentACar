@@ -17,7 +17,7 @@ public class Car: BaseEntity
     public string Location { get; set; } = null!;
     public bool IsApproved { get; set; }
 
-    public User Owner { get; set; } = null!;
+    public AppUser Owner { get; set; } = null!;
     public Company? Company { get; set; }
     public ICollection<CarFeatureAssignment> Features { get; set; } = new List<CarFeatureAssignment>();
     public ICollection<CarImage> Images { get; set; } = new List<CarImage>();
