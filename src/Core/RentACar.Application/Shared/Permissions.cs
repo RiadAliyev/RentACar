@@ -9,13 +9,15 @@ public static class Permissions
         public const string Update = "Role.Update";
         public const string Delete = "Role.Delete";
         public const string GetAllPermission = "Role.GetAllPermission";
+        public const string GetAllRoles = "Role.GetAllRoles";
 
         public static List<string> All = new()
         {
             Create,
             GetAllPermission,
             Update,
-            Delete
+            Delete,
+            GetAllRoles
         };
     }
     public static class Booking
@@ -41,18 +43,12 @@ public static class Permissions
         public const string Create = "Car.Create";
         public const string Update = "Car.Update";
         public const string Delete = "Car.Delete";
-        public const string GetById = "Car.GetById";
-        public const string GetAll = "Car.GetAll";
-        public const string GetByFilter = "Car.GetByFilter";
 
         public static List<string> All = new()
         {
             Create,
             Update,
-            Delete,
-            GetById,
-            GetAll,
-            GetByFilter
+            Delete
 
         };
     }
@@ -60,13 +56,16 @@ public static class Permissions
     public static class Account
     {
         public const string AddRole = "Account.AddRole";
-        public const string Create = "Account.Create";
+        public const string GetAll = "Account.GetAll";
+        public const string GetById = "Account.GetById";
 
 
         public static List<string> All = new()
         {
             AddRole,
-            Create      
+            GetAll,
+            GetById
+
         };
     }
 
@@ -108,24 +107,7 @@ public static class Permissions
         };
     }
 
-    public static class Company
-    {
-        public const string Create = "Company.Create";
-        public const string Update = "Company.Update";
-        public const string Delete = "Company.Delete";
-        public const string GetAll = "Company.GetAll";
-        public const string GetById = "Company.GetById";
 
-
-        public static List<string> All = new()
-        {
-            Create,
-            Update,
-            Delete,
-            GetById,
-            GetAll
-        };
-    }
 
     public static class Payment
     {
@@ -151,18 +133,14 @@ public static class Permissions
     public static class Reviews
     {
         public const string Create = "Reviews.Create";
-        public const string Update = "Reviews.Update";
         public const string Delete = "Reviews.Delete";
-        public const string GetById = "Reviews.GetById";
         public const string GetAllByCarId = "Reviews.GetAllByCarId";
 
 
         public static List<string> All = new()
         {
             Create,
-            Update,
             Delete,
-            GetById,
             GetAllByCarId
         };
     }

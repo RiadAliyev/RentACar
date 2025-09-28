@@ -52,7 +52,7 @@ public class CarFeatureService : ICarFeatureService
             CreatedAt = entity.CreatedAt
         };
 
-        return BaseResponse<CarFeatureGetDto>.SuccessResponse(result);
+        return BaseResponse<CarFeatureGetDto>.SuccessResponse(result, "Car feature retrieved successfully", HttpStatusCode.OK);
     }
 
     public async Task<BaseResponse<IEnumerable<CarFeatureGetDto>>> GetAllAsync()
@@ -66,7 +66,7 @@ public class CarFeatureService : ICarFeatureService
             CreatedAt = e.CreatedAt
         });
 
-        return BaseResponse<IEnumerable<CarFeatureGetDto>>.SuccessResponse(result);
+        return BaseResponse<IEnumerable<CarFeatureGetDto>>.SuccessResponse(result, "Car feature retrieved successfully", HttpStatusCode.OK);
     }
 
     public async Task<BaseResponse<CarFeatureGetDto>> UpdateAsync(Guid id, CarFeatureUpdateDto dto)
@@ -89,7 +89,7 @@ public class CarFeatureService : ICarFeatureService
             CreatedAt = entity.CreatedAt
         };
 
-        return BaseResponse<CarFeatureGetDto>.SuccessResponse(result, "Car feature updated successfully");
+        return BaseResponse<CarFeatureGetDto>.SuccessResponse(result, "Car feature updated successfully", HttpStatusCode.OK);
     }
 
     public async Task<BaseResponse<bool>> DeleteAsync(Guid id)
@@ -102,6 +102,6 @@ public class CarFeatureService : ICarFeatureService
         _carFeatureRepo.Delete(entity);
         await _carFeatureRepo.SaveChangeAsync();
 
-        return BaseResponse<bool>.SuccessResponse(true, "Car feature deleted successfully");
+        return BaseResponse<bool>.SuccessResponse(true, "Car feature deleted successfully", HttpStatusCode.OK);
     }
 }

@@ -1,12 +1,14 @@
 ﻿using System.Net;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RentACar.Application.Abstracts.Services;
 using RentACar.Application.DTOs.CarDtos;
+using RentACar.Application.DTOs.CarImageDtos;
 using RentACar.Application.Shared;
 
 namespace RentACar.WebApi.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/[controller]/[action]")]
 [ApiController]
 public class CarController : ControllerBase
 {
@@ -17,11 +19,41 @@ public class CarController : ControllerBase
         _carService = carService;
     }
 
-    /// <summary>
-    /// Yeni maşın yaradır
-    /// </summary>
+    /// Bütün maşınları gətirir
+    [HttpGet]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
+    public async Task<IActionResult> GetAll()
+    {
+        var response = await _carService.GetAllAsync();
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    
+    /// Maşını Id ilə gətirir   
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var response = await _carService.GetByIdAsync(id);
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+
+    /// Filtrlənmiş maşın siyahısı gətirir
+    [HttpGet("filter")]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
+    public async Task<IActionResult> GetByFilter([FromForm] CarFilterDto filter)
+    {
+        var response = await _carService.GetByFilterAsync(filter);
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CarCreateDto dto)
+    [Authorize(Policy = Permissions.Car.Create)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.Created)]
+    public async Task<IActionResult> Create([FromForm] CarCreateDto dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(BaseResponse<string>.FailResponse("Validation error", HttpStatusCode.BadRequest));
@@ -29,31 +61,13 @@ public class CarController : ControllerBase
         var response = await _carService.CreateAsync(dto);
         return StatusCode((int)response.StatusCode, response);
     }
+  
 
-    /// <summary>
-    /// Maşını Id ilə gətirir
-    /// </summary>
-    [HttpGet("{id:guid}")]
-    public async Task<IActionResult> GetById(Guid id)
-    {
-        var response = await _carService.GetByIdAsync(id);
-        return StatusCode((int)response.StatusCode, response);
-    }
 
-    /// <summary>
-    /// Bütün maşınları gətirir
-    /// </summary>
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
-    {
-        var response = await _carService.GetAllAsync();
-        return StatusCode((int)response.StatusCode, response);
-    }
-
-    /// <summary>
-    /// Mövcud maşını yeniləyir
-    /// </summary>
     [HttpPut("{id:guid}")]
+    [Authorize(Policy = Permissions.Booking.Update)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
     public async Task<IActionResult> Update(Guid id, [FromBody] CarUpdateDto dto)
     {
         if (!ModelState.IsValid)
@@ -63,23 +77,47 @@ public class CarController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Maşını silir
-    /// </summary>
+
     [HttpDelete("{id:guid}")]
+    [Authorize(Policy = Permissions.Booking.Delete)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var response = await _carService.DeleteAsync(id);
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Filtrlənmiş maşın siyahısı gətirir
-    /// </summary>
-    [HttpPost("filter")]
-    public async Task<IActionResult> GetByFilter([FromBody] CarFilterDto filter)
+    [HttpPost("{carId:guid}/images")]
+    [Authorize(Policy = Permissions.Car.Update)]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> AddImages(Guid carId, [FromForm] CarImageUploadDto dto)
     {
-        var response = await _carService.GetByFilterAsync(filter);
-        return StatusCode((int)response.StatusCode, response);
+        if (dto.Files is null || dto.Files.Count == 0)
+            return BadRequest(BaseResponse<string>.FailResponse("No files provided", System.Net.HttpStatusCode.BadRequest));
+
+        var res = await _carService.AddImagesAsync(carId, dto.Files);
+        return StatusCode((int)res.StatusCode, res);
     }
+
+    [HttpPut("images/{imageId:guid}")]
+    [Authorize(Policy = Permissions.Car.Update)]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> ReplaceImage(Guid imageId, [FromForm] CarImageReplaceDto dto)
+    {
+        if (dto.File is null)
+            return BadRequest(BaseResponse<string>.FailResponse("File is required", System.Net.HttpStatusCode.BadRequest));
+
+        var res = await _carService.ReplaceImageAsync(imageId, dto.File);
+        return StatusCode((int)res.StatusCode, res);
+    }
+
+    [HttpDelete("images/{imageId:guid}")]
+    [Authorize(Policy = Permissions.Car.Delete)]
+    public async Task<IActionResult> DeleteImage(Guid imageId)
+    {
+        var res = await _carService.DeleteImageAsync(imageId);
+        return StatusCode((int)res.StatusCode, res);
+    }
+
 }

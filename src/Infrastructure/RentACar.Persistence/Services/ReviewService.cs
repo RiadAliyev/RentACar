@@ -34,21 +34,6 @@ public class ReviewService : IReviewService
         return BaseResponse<ReviewGetDto>.SuccessResponse(MapToGetDto(review), "Review created successfully", HttpStatusCode.Created);
     }
 
-    public async Task<BaseResponse<ReviewGetDto>> UpdateAsync(Guid id, ReviewUpdateDto dto)
-    {
-        var review = await _reviewRepository.GetByIdAsync(id);
-
-        if (review == null)
-            return BaseResponse<ReviewGetDto>.FailResponse("Review not found", HttpStatusCode.NotFound);
-
-        review.Rating = dto.Rating;
-        review.Comment = dto.Comment;
-
-        _reviewRepository.Update(review);
-        await _reviewRepository.SaveChangeAsync();
-
-        return BaseResponse<ReviewGetDto>.SuccessResponse(MapToGetDto(review), "Review updated successfully");
-    }
 
     public async Task<BaseResponse<bool>> DeleteAsync(Guid id)
     {
@@ -63,17 +48,7 @@ public class ReviewService : IReviewService
         return BaseResponse<bool>.SuccessResponse(true, "Review deleted successfully");
     }
 
-    public async Task<BaseResponse<ReviewGetDto>> GetByIdAsync(Guid id)
-    {
-        var review = await _reviewRepository
-            .GetByFiltered(r => r.Id == id, new[] { (System.Linq.Expressions.Expression<Func<Review, object>>)(r => r.Car), r => r.Customer }, false)
-            .FirstOrDefaultAsync();
 
-        if (review == null)
-            return BaseResponse<ReviewGetDto>.FailResponse("Review not found", HttpStatusCode.NotFound);
-
-        return BaseResponse<ReviewGetDto>.SuccessResponse(MapToGetDto(review));
-    }
 
     public async Task<BaseResponse<IEnumerable<ReviewGetDto>>> GetAllByCarIdAsync(Guid carId)
     {

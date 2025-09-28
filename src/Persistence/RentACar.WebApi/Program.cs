@@ -76,7 +76,10 @@ builder.Services.Configure<CloudinarySettings>(
 
 
 builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JWTSettings"));
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JWTSettings>();
+
+
 
 
 builder.Services.AddAuthorization(options =>
@@ -88,6 +91,23 @@ builder.Services.AddAuthorization(options =>
             policy.RequireClaim("Permission", permission);
         });
     }
+
+    foreach (var permission in PermissionHelper.GetAllPermissionList())
+    {
+        options.AddPolicy(permission, policy =>
+        {
+            policy.RequireClaim("Permission", permission);
+        });
+    }
+
+    // Yalnız CompanyOwner üçündür:
+    options.AddPolicy("CompanyOwnerOnly", policy =>
+    {
+        policy.RequireAssertion(ctx =>
+            ctx.User.HasClaim("account_type", "CompanyOwner") ||
+            ctx.User.IsInRole("CompanyOwner")
+        );
+    });
 });
 
 
@@ -131,6 +151,8 @@ builder.Services.AddAuthentication(options =>
 
 
 
+builder.Services.AddHttpContextAccessor();  // user servicede yazdigim myuser info ucun
+
 builder.Services.AddValidatorsFromAssembly(typeof(UserRegisterDtoValidator).Assembly);
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
@@ -147,14 +169,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+await RoleSeeder.SeedAsync(app.Services); //role tanitmaq ucun yazmisam helperdeki metod ucun
+
 // Configure the HTTP request pipeline.
 
 app.UseHttpsRedirection();
+
+app.UseStaticFiles();
 
 app.UseAuthentication();
 
 app.UseAuthorization();
 
 app.MapControllers();
+
 
 app.Run();

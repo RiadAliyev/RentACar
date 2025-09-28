@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RentACar.Application.Abstracts.Services;
 using RentACar.Application.DTOs.CarFeatureDto;
@@ -6,7 +7,7 @@ using RentACar.Application.Shared;
 
 namespace RentACar.WebApi.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/[controller]/[action]")]
 [ApiController]
 public class CarFeatureController : ControllerBase
 {
@@ -17,10 +18,34 @@ public class CarFeatureController : ControllerBase
         _carFeatureService = carFeatureService;
     }
 
-    /// <summary>
-    /// ✅ Yeni CarFeature əlavə edir
-    /// </summary>
+
+
+    [HttpGet]
+    [Authorize(Policy = Permissions.CarFeature.GetAll)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
+    public async Task<IActionResult> GetAll()
+    {
+        var response = await _carFeatureService.GetAllAsync();
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+
+
+    [HttpGet("{id:guid}")]
+    [Authorize(Policy = Permissions.CarFeature.GetById)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var response = await _carFeatureService.GetByIdAsync(id);
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+
+
     [HttpPost]
+    [Authorize(Policy = Permissions.CarFeature.Create)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.Created)]
     public async Task<IActionResult> Create([FromBody] CarFeatureCreateDto dto)
     {
         if (!ModelState.IsValid)
@@ -30,30 +55,12 @@ public class CarFeatureController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// ✅ Id ilə CarFeature gətirir
-    /// </summary>
-    [HttpGet("{id:guid}")]
-    public async Task<IActionResult> GetById(Guid id)
-    {
-        var response = await _carFeatureService.GetByIdAsync(id);
-        return StatusCode((int)response.StatusCode, response);
-    }
 
-    /// <summary>
-    /// ✅ Bütün CarFeature-ları gətirir
-    /// </summary>
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
-    {
-        var response = await _carFeatureService.GetAllAsync();
-        return StatusCode((int)response.StatusCode, response);
-    }
 
-    /// <summary>
-    /// ✅ CarFeature update edir
-    /// </summary>
     [HttpPut("{id:guid}")]
+    [Authorize(Policy = Permissions.CarFeature.Update)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
     public async Task<IActionResult> Update(Guid id, [FromBody] CarFeatureUpdateDto dto)
     {
         if (!ModelState.IsValid)
@@ -63,10 +70,11 @@ public class CarFeatureController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// ✅ CarFeature silir
-    /// </summary>
+
     [HttpDelete("{id:guid}")]
+    [Authorize(Policy = Permissions.CarFeature.Delete)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var response = await _carFeatureService.DeleteAsync(id);

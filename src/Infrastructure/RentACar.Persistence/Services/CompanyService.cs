@@ -18,12 +18,18 @@ public class CompanyService : ICompanyService
         _companyRepo = companyRepo;
     }
 
-    public async Task<BaseResponse<CompanyGetDto>> CreateAsync(CompanyCreateDto dto)
+    public async Task<BaseResponse<CompanyGetDto>> CreateAsync(CompanyCreateDto dto, Guid ownerId)
     {
+        var alreadyHas = await _companyRepo.GetAll(IsTracking: false)
+            .AnyAsync(c => c.OwnerId == ownerId);
+        if (alreadyHas)
+            return BaseResponse<CompanyGetDto>.FailResponse("You already have a company.", HttpStatusCode.BadRequest);
+
+
         var entity = new Company
         {
             Id = Guid.NewGuid(),
-            OwnerId = dto.OwnerId,
+            OwnerId = ownerId,
             Name = dto.Name,
             RegistrationNumber = dto.RegistrationNumber,
             Address = dto.Address,

@@ -1,4 +1,5 @@
-﻿using RentACar.Domain.Enums;
+﻿using Microsoft.AspNetCore.Http;
+using RentACar.Domain.Enums;
 
 namespace RentACar.Application.DTOs.CarDtos;
 
@@ -17,6 +18,6 @@ public class CarUpdateDto
 
     // Yenilənə bilən əlavə məlumatlar
     public List<Guid>? FeatureIds { get; set; }
-    public List<string>? ImageUrls { get; set; }
+    public List<IFormFile>? NewImages { get; set; }
 }
 

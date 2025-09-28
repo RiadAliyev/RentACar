@@ -5,7 +5,7 @@ namespace RentACar.Application.Abstracts.Services;
 
 public interface ICompanyService
 {
-    Task<BaseResponse<CompanyGetDto>> CreateAsync(CompanyCreateDto dto);
+    Task<BaseResponse<CompanyGetDto>> CreateAsync(CompanyCreateDto dto, Guid ownerId);
     Task<BaseResponse<CompanyGetDto>> GetByIdAsync(Guid id);
     Task<BaseResponse<IEnumerable<CompanyGetDto>>> GetAllAsync();
     Task<BaseResponse<CompanyGetDto>> UpdateAsync(Guid id, CompanyUpdateDto dto);

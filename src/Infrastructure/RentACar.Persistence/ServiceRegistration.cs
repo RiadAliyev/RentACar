@@ -25,7 +25,6 @@ public static class ServiceRegistration
         #region Services
         services.AddScoped<IBookingService, BookingService>();
         services.AddScoped<ICarFeatureService, CarFeatureService>();
-        services.AddScoped<ICarImageService, CarImageService>();
         services.AddScoped<IFileService, CloudinaryService>();
         services.AddScoped<ICarService, CarService>();
         services.AddScoped<ICompanyService, CompanyService>();
@@ -33,6 +32,9 @@ public static class ServiceRegistration
         services.AddScoped<IReviewService, ReviewService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IRoleService, RoleService>();
+        services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<IFileStorage, LocalFileStorage>();
+    
 
 
 

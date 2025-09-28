@@ -10,7 +10,7 @@ using System.Net;
 
 namespace RentACar.WebApi.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/[controller]/[action]")]
 [ApiController]
 public class RolesController : ControllerBase
 {
@@ -30,8 +30,9 @@ public class RolesController : ControllerBase
         return Ok(permissions);
     }
 
-    //[Authorize(Policy = Permissions.Role.Create)]
+    
     [HttpPost("Create Role")]
+    //[Authorize(Policy = Permissions.Role.Create)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.PartialContent)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.BadRequest)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.Created)]
@@ -41,8 +42,9 @@ public class RolesController : ControllerBase
         return StatusCode((int)result.StatusCode, result);
     }
 
-    //[Authorize(Policy = Permissions.Role.Update)]
+    
     [HttpPut("{id}")]
+    //[Authorize(Policy = Permissions.Role.Update)]
     [ProducesResponseType(typeof(BaseResponse<TokenResponse>), (int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.BadRequest)]
@@ -55,8 +57,9 @@ public class RolesController : ControllerBase
         return StatusCode((int)result.StatusCode, result);
     }
 
-    //[Authorize(Policy = Permissions.Role.Delete)]
+    
     [HttpDelete("{roleName}")]
+    //[Authorize(Policy = Permissions.Role.Delete)]
     [ProducesResponseType(typeof(BaseResponse<TokenResponse>), (int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
     public async Task<IActionResult> Delete(string roleName)
@@ -65,8 +68,9 @@ public class RolesController : ControllerBase
         return StatusCode((int)result.StatusCode, result);
     }
 
-    //[Authorize]
+    
     [HttpGet]
+    //[Authorize(Policy = Permissions.Role.GetAllRoles)]
     [ProducesResponseType(typeof(BaseResponse<TokenResponse>), (int)HttpStatusCode.OK)]
     public IActionResult GetAllRoles()
     {

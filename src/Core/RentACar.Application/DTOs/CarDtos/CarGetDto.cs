@@ -1,4 +1,5 @@
-﻿using RentACar.Domain.Enums;
+﻿using RentACar.Application.DTOs.CarImageDtos;
+using RentACar.Domain.Enums;
 
 namespace RentACar.Application.DTOs.CarDtos;
 
@@ -16,6 +17,7 @@ public class CarGetDto
     public FuelType FuelType { get; set; }
     public byte Seats { get; set; }
     public decimal DailyPrice { get; set; }
+    public List<CarImageGetDto> Images { get; set; } = new();
     public string Location { get; set; } = null!;
     public bool IsApproved { get; set; }
     public DateTime CreatedAt { get; set; }

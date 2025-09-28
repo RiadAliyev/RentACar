@@ -2,7 +2,7 @@
 
 public class CompanyCreateDto
 {
-    public Guid OwnerId { get; set; }
+    
     public string Name { get; set; } = null!;
     public string RegistrationNumber { get; set; } = null!;
     public string Address { get; set; } = null!;

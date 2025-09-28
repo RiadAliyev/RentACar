@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using RentACar.Domain.Enums;
 
 namespace RentACar.Domain.Entities;
 public class AppUser: IdentityUser<Guid>
@@ -6,6 +7,9 @@ public class AppUser: IdentityUser<Guid>
     public string FullName { get; set; } = null!;
     public string? RefreshToken { get; set; }
     public DateTime ExpireDate { get; set; }
+
+    public AccountType AccountType { get; set; }
+
     public Company? Company { get; set; }
     public ICollection<Car> Cars { get; set; } = new List<Car>();
     public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
