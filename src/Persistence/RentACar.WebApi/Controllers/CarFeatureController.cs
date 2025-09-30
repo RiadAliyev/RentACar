@@ -20,8 +20,7 @@ public class CarFeatureController : ControllerBase
 
 
 
-    [HttpGet]
-    [Authorize(Policy = Permissions.CarFeature.GetAll)]
+    [HttpGet]    
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
     public async Task<IActionResult> GetAll()
     {
@@ -31,8 +30,7 @@ public class CarFeatureController : ControllerBase
 
 
 
-    [HttpGet("{id:guid}")]
-    [Authorize(Policy = Permissions.CarFeature.GetById)]
+    [HttpGet("{id:guid}")]   
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
     public async Task<IActionResult> GetById(Guid id)

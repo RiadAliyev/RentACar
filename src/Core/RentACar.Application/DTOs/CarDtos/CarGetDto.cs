@@ -6,8 +6,8 @@ namespace RentACar.Application.DTOs.CarDtos;
 public class CarGetDto
 {
     public Guid Id { get; set; }
-    public Guid OwnerId { get; set; }
-    public string OwnerName { get; set; } = null!;
+    public Guid? OwnerId { get; set; }
+    public string? OwnerName { get; set; } = null!;
     public Guid? CompanyId { get; set; }
     public string? CompanyName { get; set; }
     public string Brand { get; set; } = null!;
@@ -17,7 +17,6 @@ public class CarGetDto
     public FuelType FuelType { get; set; }
     public byte Seats { get; set; }
     public decimal DailyPrice { get; set; }
-    public List<CarImageGetDto> Images { get; set; } = new();
     public string Location { get; set; } = null!;
     public bool IsApproved { get; set; }
     public DateTime CreatedAt { get; set; }

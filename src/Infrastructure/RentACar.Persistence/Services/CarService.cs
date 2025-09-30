@@ -10,33 +10,57 @@ using static System.Net.Mime.MediaTypeNames;
 using Microsoft.AspNetCore.Http;
 using RentACar.Application.DTOs.CarImageDtos;
 using RentACar.Application.Shared.Helpers;
+using static RentACar.Application.Shared.Permissions;
 
 namespace RentACar.Persistence.Services;
 
 public class CarService : ICarService
 {
-    private readonly IRepository<Car> _carRepo;
-    private readonly IRepository<CarImage> _imgRepo; 
+    private readonly IRepository<RentACar.Domain.Entities.Car> _carRepo;
+    private readonly IRepository<RentACar.Domain.Entities.CarImage> _imgRepo; 
     private readonly IFileStorage _files;
+    private readonly IRepository<CarFeatureAssignment> _carFeatureAssignmentRepo;
+    private readonly IHttpContextAccessor _http;
+    private string? CurrentUserId =>
+    _http.HttpContext?.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-    public CarService(IRepository<Car> carRepo, IRepository<CarImage> imgRepo, IFileStorage files )
+    public CarService(IRepository<Domain.Entities.Car> carRepo, IRepository<Domain.Entities.CarImage> imgRepo, IFileStorage files, IRepository<CarFeatureAssignment> carFeatureAssignmentRepo, IHttpContextAccessor http)
     {
         _carRepo = carRepo;
         _imgRepo = imgRepo;
         _files = files;
+        _carFeatureAssignmentRepo = carFeatureAssignmentRepo;
+        _http = http;
+
     }
 
     public async Task<BaseResponse<CarGetDto>> CreateAsync(CarCreateDto dto)
     {
-        var car = new Car
+        // ✅ Constraint check (bizim tərəfdən)
+        if (dto.OwnerId == null && dto.CompanyId == null)
+        {
+            return BaseResponse<CarGetDto>.FailResponse(
+                "Either OwnerId or CompanyId must be provided",
+                HttpStatusCode.BadRequest);
+        }
+
+        if (dto.OwnerId != null && dto.CompanyId != null)
+        {
+            return BaseResponse<CarGetDto>.FailResponse(
+                "A car cannot belong to both an Owner and a Company at the same time",
+                HttpStatusCode.BadRequest);
+        }
+
+        var car = new Domain.Entities.Car
         {
             Id = Guid.NewGuid(),
             Brand = dto.Brand,          // <- səndə necədirsə
             Model = dto.Model,          // <- səndə necədirsə
             Year = dto.Year,           // <- səndə necədirsə
-            DailyPrice = dto.DailyPrice,     // <- səndə necədirsə
-            OwnerId = dto.OwnerId,     // (əgər varsa / lazım olsa)
-            CompanyId = dto.CompanyId ,    // (əgər varsa / lazım olsa)
+            DailyPrice = dto.DailyPrice,  // <- səndə necədirsə
+            Location = dto.Location,
+            OwnerId = dto.OwnerId ,   // əgər null-dursa boş Guid yazılacaq
+            CompanyId = dto.CompanyId  ,  // (əgər varsa / lazım olsa)
             CreatedAt = DateTime.UtcNow
         };
 
@@ -44,7 +68,7 @@ public class CarService : ICarService
         await _carRepo.SaveChangeAsync();
 
         // 2) Şəkilləri yüklə və CarImage kimi əlavə et
-        var createdImages = new List<CarImage>();
+        var createdImages = new List<RentACar.Domain.Entities.CarImage>();
         if (dto.Images is { Count: > 0 })
         {
             foreach (var file in dto.Images)
@@ -54,7 +78,7 @@ public class CarService : ICarService
                 // Faylı diskinə yaz və relative URL al
                 var url = await _files.SaveCarImageAsync(file, car.Id);
 
-                var img = new CarImage
+                var img = new RentACar.Domain.Entities.CarImage
                 {
                     Id = Guid.NewGuid(),
                     CarId = car.Id,
@@ -69,6 +93,24 @@ public class CarService : ICarService
             await _imgRepo.SaveChangeAsync();
         }
 
+        if (dto.FeatureIds is { Count: > 0 })
+        {
+            foreach (var featureId in dto.FeatureIds)
+            {
+                var carFeature = new CarFeatureAssignment
+                {
+                    Id = Guid.NewGuid(),   // əgər BaseEntity varsa lazım deyil
+                    CarId = car.Id,
+                    FeatureId = featureId,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _carFeatureAssignmentRepo.AddAsync(carFeature);
+            }
+
+            await _carFeatureAssignmentRepo.SaveChangeAsync();
+        }
+
         // 3) Nəticə DTO
         var result = new CarGetDto
         {
@@ -78,13 +120,7 @@ public class CarService : ICarService
             Year = car.Year,
             DailyPrice = car.DailyPrice,
             // başqa sahələrin varsa əlavə et...
-            Images = createdImages.Select(i => new CarImageGetDto
-            {
-                Id = i.Id,
-                CarId = i.CarId,
-                ImageUrl = i.ImageUrl,
-                CreatedAt = i.CreatedAt
-            }).ToList()
+            
         };
 
         return BaseResponse<CarGetDto>.SuccessResponse(result, "Car created successfully", HttpStatusCode.Created);
@@ -92,17 +128,12 @@ public class CarService : ICarService
 
     public async Task<BaseResponse<CarGetDto>> GetByIdAsync(Guid id)
     {
-        var entity = await _carRepo.GetByFiltered(
-            x => x.Id == id,
-            include: new Expression<Func<Car, object>>[]
-            {
-                x => x.Owner,
-                x => x.Company,
-                x => x.Features,
-                x => x.Images
-            },
-            IsTracking: false
-        ).FirstOrDefaultAsync();
+        var entity = await _carRepo.GetAll(IsTracking: false)
+            .Include(x => x.Owner)
+            .Include(x => x.Company)
+            .Include(x => x.Images)
+            .Include(x => x.Features).ThenInclude(cf => cf.Feature) // ✅ Əlavə et
+            .FirstOrDefaultAsync(x => x.Id == id);
 
         if (entity is null)
             return BaseResponse<CarGetDto>.FailResponse("Car not found", HttpStatusCode.NotFound);
@@ -116,8 +147,8 @@ public class CarService : ICarService
         var entities = await _carRepo.GetAll(IsTracking: false)
             .Include(x => x.Owner)
             .Include(x => x.Company)
-            .Include(x => x.Features)
             .Include(x => x.Images)
+            .Include(x => x.Features).ThenInclude(cf => cf.Feature) // ✅ Burada düzəliş
             .ToListAsync();
 
         var result = entities.Select(MapToGetDto);
@@ -130,7 +161,11 @@ public class CarService : ICarService
         if (entity is null)
             return BaseResponse<CarGetDto>.FailResponse("Car not found", HttpStatusCode.NotFound);
 
-        
+        // 🔑 yalnız sahib update edə bilər
+        if (entity.OwnerId.ToString() != CurrentUserId)
+        {
+            return BaseResponse<CarGetDto>.FailResponse("You can only update your own cars", HttpStatusCode.Forbidden);
+        }
 
         entity.CompanyId = dto.CompanyId;
         entity.Brand = dto.Brand;
@@ -143,8 +178,6 @@ public class CarService : ICarService
         entity.Location = dto.Location;
         entity.IsApproved = dto.IsApproved;
         entity.UpdatedAt = DateTime.UtcNow;
-
-        
 
         _carRepo.Update(entity);
         await _carRepo.SaveChangeAsync();
@@ -159,6 +192,12 @@ public class CarService : ICarService
         if (entity is null)
             return BaseResponse<bool>.FailResponse("Car not found", HttpStatusCode.NotFound);
 
+        // 🔑 yalnız sahib silə bilər
+        if (entity.OwnerId.ToString() != CurrentUserId)
+        {
+            return BaseResponse<bool>.FailResponse("You can only delete your own cars", HttpStatusCode.Forbidden);
+        }
+
         _carRepo.Delete(entity);
         await _carRepo.SaveChangeAsync();
 
@@ -166,7 +205,7 @@ public class CarService : ICarService
     }
 
     // 🔑 Mapping helper
-    private CarGetDto MapToGetDto(Car e)
+    private CarGetDto MapToGetDto(RentACar.Domain.Entities.Car e)
     {
         return new CarGetDto
         {
@@ -235,23 +274,24 @@ public class CarService : ICarService
 
     public async Task<BaseResponse<IEnumerable<CarImageGetDto>>> AddImagesAsync(Guid carId, IEnumerable<IFormFile> files)
     {
-        // 0) Input yoxlaması
         if (files is null || !files.Any())
             return BaseResponse<IEnumerable<CarImageGetDto>>.FailResponse("No files provided", HttpStatusCode.BadRequest);
 
-        // 1) Maşını yoxla
         var car = await _carRepo.GetByIdAsync(carId);
         if (car is null)
             return BaseResponse<IEnumerable<CarImageGetDto>>.FailResponse("Car not found", HttpStatusCode.NotFound);
 
-        // 2) Yüklə və DB-yə yaz
+        // ✅ yalnız sahib şəkil əlavə edə bilər
+        if (car.OwnerId.ToString() != CurrentUserId)
+            return BaseResponse<IEnumerable<CarImageGetDto>>.FailResponse("You can only add images to your own cars", HttpStatusCode.Forbidden);
+
         var created = new List<CarImageGetDto>();
         foreach (var file in files)
         {
-            if (file == null || file.Length == 0) continue; // boş faylı keç
+            if (file == null || file.Length == 0) continue;
 
-            var url = await _files.SaveCarImageAsync(file, car.Id); // <<-- 'file' istifadə olunur
-            var img = new CarImage
+            var url = await _files.SaveCarImageAsync(file, car.Id);
+            var img = new RentACar.Domain.Entities.CarImage
             {
                 Id = Guid.NewGuid(),
                 CarId = carId,
@@ -285,10 +325,16 @@ public class CarService : ICarService
         if (img is null)
             return BaseResponse<CarImageGetDto>.FailResponse("Image not found", HttpStatusCode.NotFound);
 
-        // Köhnə fiziki faylı sil
+        var car = await _carRepo.GetByIdAsync(img.CarId);
+        if (car == null)
+            return BaseResponse<CarImageGetDto>.FailResponse("Car not found", HttpStatusCode.NotFound);
+
+        // ✅ yalnız sahib şəkili dəyişə bilər
+        if (car.OwnerId.ToString() != CurrentUserId)
+            return BaseResponse<CarImageGetDto>.FailResponse("You can only update images of your own cars", HttpStatusCode.Forbidden);
+
         _files.DeleteIfExists(img.ImageUrl);
 
-        // Yenini yaddaşa yaz
         var url = await _files.SaveCarImageAsync(file, img.CarId);
         img.ImageUrl = url;
         img.UpdatedAt = DateTime.UtcNow;
@@ -314,7 +360,14 @@ public class CarService : ICarService
         if (img is null)
             return BaseResponse<bool>.FailResponse("Image not found", HttpStatusCode.NotFound);
 
-        // Fiziki faylı sil
+        var car = await _carRepo.GetByIdAsync(img.CarId);
+        if (car == null)
+            return BaseResponse<bool>.FailResponse("Car not found", HttpStatusCode.NotFound);
+
+        // ✅ yalnız sahib şəkili silə bilər
+        if (car.OwnerId.ToString() != CurrentUserId)
+            return BaseResponse<bool>.FailResponse("You can only delete images of your own cars", HttpStatusCode.Forbidden);
+
         _files.DeleteIfExists(img.ImageUrl);
 
         _imgRepo.Delete(img);

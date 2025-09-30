@@ -5,7 +5,7 @@ namespace RentACar.Domain.Entities;
 
 public class Car: BaseEntity
 {
-    public Guid OwnerId { get; set; }
+    public Guid? OwnerId { get; set; }
     public Guid? CompanyId { get; set; }
     public string Brand { get; set; } = null!;
     public string Model { get; set; } = null!;

@@ -68,7 +68,7 @@ public class CarController : ControllerBase
     [Authorize(Policy = Permissions.Booking.Update)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
-    public async Task<IActionResult> Update(Guid id, [FromBody] CarUpdateDto dto)
+    public async Task<IActionResult> Update(Guid id, [FromForm] CarUpdateDto dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(BaseResponse<string>.FailResponse("Validation error", HttpStatusCode.BadRequest));
