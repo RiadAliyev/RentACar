@@ -31,7 +31,7 @@ public class EmailService : IEmailService
             IsBodyHtml = true
         };
 
-        foreach (var email in toEmails.Distinct()) // təkrarları aradan qaldırır
+        foreach (var email in toEmails.Distinct()) 
         {
 
             message.To.Add(email.Trim());

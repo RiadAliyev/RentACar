@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Net;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RentACar.Application.Abstracts.Services;
 using RentACar.Application.DTOs.ReviewDtos;
@@ -20,6 +21,7 @@ public class ReviewsController : ControllerBase
 
     [HttpGet("car/{carId}")]
     [Authorize(Policy = Permissions.Reviews.GetAllByCarId)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
     public async Task<IActionResult> GetAllByCarId(Guid carId)
     {
         var result = await _reviewService.GetAllByCarIdAsync(carId);
@@ -28,6 +30,11 @@ public class ReviewsController : ControllerBase
 
     [HttpPost]
     [Authorize(Policy = Permissions.Reviews.Create)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.Unauthorized)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.Conflict)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.Created)]
     public async Task<IActionResult> Create([FromBody] ReviewCreateDto dto)
     {
         var result = await _reviewService.CreateAsync(dto);
@@ -36,6 +43,10 @@ public class ReviewsController : ControllerBase
 
     [HttpDelete("{id}")]
     [Authorize(Policy = Permissions.Reviews.Delete)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.Unauthorized)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.Forbidden)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var result = await _reviewService.DeleteAsync(id);

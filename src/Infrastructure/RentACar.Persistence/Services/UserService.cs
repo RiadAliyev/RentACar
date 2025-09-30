@@ -55,12 +55,12 @@ public class UserService:IUserService
 
     public async Task<BaseResponse<string>> Register(UserRegisterDto dto)
     {
-        // 1) Email unik olmalıdır
+        
         var existedEmail = await _userManager.FindByEmailAsync(dto.Email);
         if (existedEmail is not null)
             return new BaseResponse<string>("This account already exists", HttpStatusCode.BadRequest);
 
-        // 2) İstifadəçi obyektini hazırla
+        
         var newUser = new AppUser
         {
             Email = dto.Email,
@@ -69,7 +69,7 @@ public class UserService:IUserService
             AccountType = dto.AccountType
         };
 
-        // 3) Identity-də yarat
+        
         var identityResult = await _userManager.CreateAsync(newUser, dto.Password);
         await _userManager.AddClaimAsync(newUser, new Claim("account_type", newUser.AccountType.ToString()));
 
@@ -79,7 +79,7 @@ public class UserService:IUserService
             return new BaseResponse<string>(errorMessage, HttpStatusCode.BadRequest);
         }
 
-        // 4) Rol təyin et
+        
         var roleName = dto.AccountType switch
         {
             AccountType.CompanyOwner => "CompanyOwner",
@@ -89,7 +89,7 @@ public class UserService:IUserService
         if (await _roleManager.RoleExistsAsync(roleName))
             await _userManager.AddToRoleAsync(newUser, roleName);
 
-        // 5) Email təsdiqi üçün link göndər
+        
         string confirmEmailLink = await GetEmailConfirmLink(newUser);
         await _emailService.SendEmailAsync(new List<string> { newUser.Email }, "Email Confirmation", confirmEmailLink);
 
@@ -180,35 +180,19 @@ public class UserService:IUserService
     public async Task<BaseResponse<string>> AddRole(UserAddRoleDto dto)
     {
         var user = await _userManager.FindByIdAsync(dto.UserId.ToString());
-        if (user is null)
-        {
-            return new BaseResponse<string>("User not found", HttpStatusCode.NotFound);
-        }
+        if (user is null) return new("User not found", HttpStatusCode.NotFound);
 
         var roleNames = new List<string>();
-
         foreach (var roleId in dto.RoleId.Distinct())
         {
             var role = await _roleManager.FindByIdAsync(roleId.ToString());
-            if (role is null)
-            {
-                return new BaseResponse<string>($"Role With Id'{roleId}' not found", HttpStatusCode.NotFound);
-            }
-
-            if (!await _userManager.IsInRoleAsync(user, role.Name!))
-            {
-                var result = await _userManager.AddToRoleAsync(user, role.Name!);
-                if (!result.Succeeded)
-                {
-                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                    return new BaseResponse<string>($"Failed to add role '{role.Name}'to user:{errors}", HttpStatusCode.BadRequest);
-                }
-                roleNames.Add(role.Name!);
-            }
-
+            if (role is null) return new($"Role With Id '{roleId}' not found", HttpStatusCode.NotFound);
+            roleNames.Add(role.Name!);
         }
-        return new BaseResponse<string>($"Succesfuly added roles:{string.Join(", ", roleNames)}", HttpStatusCode.OK);
 
+        
+        var res = await SetRolesAsync(user.Id, roleNames);
+        return res;
     }
 
     public async Task<BaseResponse<List<UserListItemDto>>> GetAllUsersAsync()
@@ -285,7 +269,7 @@ public class UserService:IUserService
 
         var userId = Guid.Parse(userIdStr);
 
-        // Eager-load: Owner üçün u.Cars; Company üçün u.Company.Cars
+        
         var user = await _userManager.Users
             .Include(u => u.Cars)
             .Include(u => u.Company)!.ThenInclude(c => c.Cars)
@@ -297,7 +281,7 @@ public class UserService:IUserService
 
         var roles = await _userManager.GetRolesAsync(user);
 
-        // Rollardan Permission claim-ləri topla (varsınızsa)
+        
         var permissions = new List<string>();
         foreach (var roleName in roles)
         {
@@ -321,7 +305,7 @@ public class UserService:IUserService
             
         };
 
-        // AccountType qaydası:
+       
         if (user.AccountType == AccountType.CarOwner)
         {
             var cars = (user.Cars ?? new List<Car>())
@@ -352,7 +336,7 @@ public class UserService:IUserService
             dto.Cars = cars;
             dto.CarCount = cars.Count;
         }
-        // Buyer üçün Cars boş qalır
+        
 
         return new BaseResponse<MeProfileDto>("Profile fetched", dto, HttpStatusCode.OK);
     }
@@ -420,11 +404,11 @@ public class UserService:IUserService
         var handler = new JwtSecurityTokenHandler();
         var jwtToken = handler.ReadJwtToken(token);
 
-        // Qalan vaxtı TimeSpan kimi hesabla
+        
         var expireAt = jwtToken.ValidTo.ToUniversalTime() - DateTime.UtcNow;
 
         if (expireAt <= TimeSpan.Zero)
-            expireAt = TimeSpan.FromMinutes(1); // Ən azı 1 dəqiqə saxla ki, Redisə düşsün
+            expireAt = TimeSpan.FromMinutes(1); 
 
         await _redisService.AddToBlacklistAsync(token, expireAt);
 
@@ -446,6 +430,22 @@ public class UserService:IUserService
         if (dto.AccountType.HasValue)
             user.AccountType = dto.AccountType.Value;
 
+        if (dto.AccountType.HasValue && user.AccountType != dto.AccountType.Value)
+        {
+            user.AccountType = dto.AccountType.Value;
+
+            var roleName = user.AccountType switch
+            {
+                AccountType.CompanyOwner => "CompanyOwner",
+                AccountType.CarOwner => "CarOwner",
+                _ => "Customer"
+            };
+
+            var setRes = await SetSingleRoleAsync(user.Id, roleName);
+            if (setRes.StatusCode != HttpStatusCode.OK)
+                return BaseResponse<UserDetailsDto>.FailResponse(setRes.Message, setRes.StatusCode);
+        }
+
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded)
         {
@@ -463,7 +463,7 @@ public class UserService:IUserService
             Roles = roles.ToList()
         };
 
-        return BaseResponse<UserDetailsDto>.SuccessResponse(dtoRes, "User updated successfully");
+        return BaseResponse<UserDetailsDto>.SuccessResponse(dtoRes, "User updated successfully", HttpStatusCode.OK);
     }
 
     public async Task<BaseResponse<bool>> DeleteUserAsync(Guid id)
@@ -472,12 +472,12 @@ public class UserService:IUserService
         if (user == null)
             return BaseResponse<bool>.FailResponse("User not found", HttpStatusCode.NotFound);
 
-        // Soft delete: lock user instead of removing
+        
         user.LockoutEnabled = true;
         user.LockoutEnd = DateTimeOffset.MaxValue;
         await _userManager.UpdateAsync(user);
 
-        return BaseResponse<bool>.SuccessResponse(true, "User deactivated successfully");
+        return BaseResponse<bool>.SuccessResponse(true, "User deactivated successfully", HttpStatusCode.OK);
     }
 
     public async Task<BaseResponse<bool>> LockUserAsync(Guid id, DateTimeOffset lockUntil)
@@ -490,7 +490,7 @@ public class UserService:IUserService
         user.LockoutEnd = lockUntil;
         await _userManager.UpdateAsync(user);
 
-        return BaseResponse<bool>.SuccessResponse(true, $"User locked until {lockUntil}");
+        return BaseResponse<bool>.SuccessResponse(true, $"User locked until {lockUntil}", HttpStatusCode.OK);
     }
 
     public async Task<BaseResponse<bool>> UnlockUserAsync(Guid id)
@@ -503,7 +503,7 @@ public class UserService:IUserService
         user.LockoutEnabled = false;
         await _userManager.UpdateAsync(user);
 
-        return BaseResponse<bool>.SuccessResponse(true, "User unlocked successfully");
+        return BaseResponse<bool>.SuccessResponse(true, "User unlocked successfully", HttpStatusCode.OK);
     }
 
     public async Task<BaseResponse<bool>> AdminResetPasswordAsync(Guid id, string newPassword)
@@ -521,7 +521,7 @@ public class UserService:IUserService
             return BaseResponse<bool>.FailResponse($"Failed to reset password: {errors}", HttpStatusCode.BadRequest);
         }
 
-        return BaseResponse<bool>.SuccessResponse(true, "Password reset successfully");
+        return BaseResponse<bool>.SuccessResponse(true, "Password reset successfully", HttpStatusCode.OK);
     }
 
     public async Task<BaseResponse<List<UserRoleDto>>> GetUsersByRoleAsync(string roleName)
@@ -545,7 +545,7 @@ public class UserService:IUserService
             });
         }
 
-        return BaseResponse<List<UserRoleDto>>.SuccessResponse(result, "Users fetched successfully");
+        return BaseResponse<List<UserRoleDto>>.SuccessResponse(result, "Users fetched successfully", HttpStatusCode.OK);
     }
 
     public async Task<BaseResponse<string>> AddOrUpdateNumberAsync(AddNumberDto dto)
@@ -559,7 +559,7 @@ public class UserService:IUserService
         if (user == null)
             return new BaseResponse<string>("User not found", HttpStatusCode.NotFound);
 
-        // Telefon nömrəsini update et
+        
         user.PhoneNumber = dto.Number;
 
         var result = await _userManager.UpdateAsync(user);
@@ -581,7 +581,7 @@ public class UserService:IUserService
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email!),
-            new Claim("account_type", user.AccountType.ToString()),   // <<-- ƏLAVƏ
+            new Claim("account_type", user.AccountType.ToString()),   
             new Claim("full_name", user.FullName ?? string.Empty)
         };
         var roles = await _userManager.GetRolesAsync(user);
@@ -615,7 +615,7 @@ public class UserService:IUserService
         var token = tokenHandler.CreateToken(tokenDescriptor);
         var jwt = tokenHandler.WriteToken(token);
 
-        //create refresh token
+        
         var refreshToken = GenerateRefreshToken();
         var refreshTokenExpiryDate = DateTime.UtcNow.AddHours(2);
         user.RefreshToken = refreshToken;
@@ -645,7 +645,7 @@ public class UserService:IUserService
             ValidateAudience = true,
             ValidateIssuer = true,
             ValidateIssuerSigningKey = true,
-            ValidateLifetime = false, // expired token üçün bu false olmalıdır
+            ValidateLifetime = false, 
 
             ValidIssuer = _jwtSetting.Issuer,
             ValidAudience = _jwtSetting.Audience,
@@ -672,20 +672,67 @@ public class UserService:IUserService
 
     private async Task<string> GetEmailConfirmLink(AppUser user)
     {
-        //var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-        //var link = $"https://localhost:7017/api/Accounts/ConfirmEmail?userId={user.Id}&token={HttpUtility.UrlEncode(token)}";
-        //Console.WriteLine("Confirm Email Link" + link);
-        //return link;
+        
 
         var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
-        // Tokeni URL üçün encode edirik
+        
         var encodedToken = HttpUtility.UrlEncode(token);
 
-        // Burada doğru controller və endpoint göstərilməlidir
+        
 
         var link = $"https://localhost:7017/api/Authentication/ConfirmEmail?userId={user.Id}&token={HttpUtility.UrlEncode(token)}";
 
         return link;
+    }
+
+    private async Task<BaseResponse<string>> SetSingleRoleAsync(Guid userId, string roleName)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null) return new("User not found", HttpStatusCode.NotFound);
+        if (!await _roleManager.RoleExistsAsync(roleName)) return new($"Role '{roleName}' not found", HttpStatusCode.NotFound);
+
+        var current = await _userManager.GetRolesAsync(user);
+        if (current.Count > 0)
+        {
+            var rm = await _userManager.RemoveFromRolesAsync(user, current);
+            if (!rm.Succeeded) return new(string.Join("; ", rm.Errors.Select(e => e.Description)), HttpStatusCode.BadRequest);
+        }
+
+        var add = await _userManager.AddToRoleAsync(user, roleName);
+        if (!add.Succeeded) return new(string.Join("; ", add.Errors.Select(e => e.Description)), HttpStatusCode.BadRequest);
+
+        await _userManager.UpdateSecurityStampAsync(user);   
+        return new($"Role set to '{roleName}'", HttpStatusCode.OK);
+    }
+
+    
+    private async Task<BaseResponse<string>> SetRolesAsync(Guid userId, IEnumerable<string> newRoles)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null) return new("User not found", HttpStatusCode.NotFound);
+
+        var target = new List<string>();
+        foreach (var rn in newRoles.Distinct())
+        {
+            if (!await _roleManager.RoleExistsAsync(rn)) return new($"Role '{rn}' not found", HttpStatusCode.NotFound);
+            target.Add(rn);
+        }
+
+        var current = await _userManager.GetRolesAsync(user);
+        if (current.Count > 0)
+        {
+            var rm = await _userManager.RemoveFromRolesAsync(user, current);
+            if (!rm.Succeeded) return new(string.Join("; ", rm.Errors.Select(e => e.Description)), HttpStatusCode.BadRequest);
+        }
+
+        if (target.Count > 0)
+        {
+            var add = await _userManager.AddToRolesAsync(user, target);
+            if (!add.Succeeded) return new(string.Join("; ", add.Errors.Select(e => e.Description)), HttpStatusCode.BadRequest);
+        }
+
+        await _userManager.UpdateSecurityStampAsync(user);
+        return new("Roles updated", HttpStatusCode.OK);
     }
 }

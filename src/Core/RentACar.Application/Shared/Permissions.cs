@@ -27,6 +27,12 @@ public static class Permissions
         public const string Delete = "Booking.Delete";
         public const string GetById = "Booking.GetById";
         public const string GetAll = "Booking.GetAll";
+        public const string Approve = "Booking.Approve";
+        public const string Reject = "Booking.Reject";
+        public const string Complete = "Booking.Complete";
+        public const string Cancel = "Booking.Cancel";
+        public const string ReadForOwner = "Booking.ReadForOwner";
+
 
         public static List<string> All = new()
         {
@@ -34,7 +40,12 @@ public static class Permissions
             Update, 
             Delete,
             GetAll,
-            GetById
+            GetById,
+            Approve,
+            Reject,
+            Complete,
+            Cancel,
+            ReadForOwner
         };
     }
 
@@ -171,4 +182,6 @@ public static class Permissions
             Update
         };
     }
+
+    
 }

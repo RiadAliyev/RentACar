@@ -11,7 +11,7 @@ public sealed class ReviewConfiguration : IEntityTypeConfiguration<Review>
         b.ToTable("Reviews");
         b.HasKey(x => x.Id);
 
-        b.Property(x => x.Rating).IsRequired();             // byte
+        b.Property(x => x.Rating).IsRequired();             
         b.Property(x => x.Comment).HasMaxLength(1000);
         b.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
 

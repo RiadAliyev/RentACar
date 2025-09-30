@@ -20,7 +20,6 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<AppUser>
         b.HasIndex(x => x.Email).IsUnique();
         b.HasIndex(x => x.PhoneNumber);
 
-        // 1 - 1 : User <-> Company (optional)
         b.HasOne(x => x.Company)
          .WithOne(c => c.Owner)
          .HasForeignKey<Company>(c => c.OwnerId)

@@ -62,7 +62,7 @@ public class RoleService : IRoleService
             return new BaseResponse<string?>(errorMessages, HttpStatusCode.BadRequest);
         }
 
-        // Mövcud permission-ləri sil
+       
         var currentClaims = await _rolemanager.GetClaimsAsync(existingRole);
         var permissionClaims = currentClaims.Where(c => c.Type == "Permission").ToList();
 
@@ -71,7 +71,7 @@ public class RoleService : IRoleService
             await _rolemanager.RemoveClaimAsync(existingRole, claim);
         }
 
-        // Yeni permission-ləri əlavə et
+        
         foreach (var permission in dto.PermissionList.Distinct())
         {
             var claimResult = await _rolemanager.AddClaimAsync(existingRole, new Claim("Permission", permission));

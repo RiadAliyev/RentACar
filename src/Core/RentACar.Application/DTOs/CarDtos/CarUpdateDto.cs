@@ -15,8 +15,6 @@ public class CarUpdateDto
     public decimal DailyPrice { get; set; }
     public string Location { get; set; } = null!;
     public bool IsApproved { get; set; }
-
-    // Yenilənə bilən əlavə məlumatlar
     public List<Guid>? FeatureIds { get; set; }
     public List<IFormFile>? NewImages { get; set; }
 }

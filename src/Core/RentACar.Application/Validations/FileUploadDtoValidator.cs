@@ -9,7 +9,7 @@ public class FileUploadValidations : AbstractValidator<FileUploadDto>
     private static readonly List<string> AllowedContentTypes = new()
     {
         "application/pdf",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 
         
         "image/png",
         "image/jpeg",
@@ -21,7 +21,7 @@ public class FileUploadValidations : AbstractValidator<FileUploadDto>
         RuleFor(x => x.File)
             .NotNull().WithMessage("Fayl boş ola bilməz.")
             .Must(file => file != null && file.Length > 0).WithMessage("Fayl boş ola bilməz.")
-            .Must(file => file != null && file.Length <= 5 * 1024 * 1024) // 5MB limit
+            .Must(file => file != null && file.Length <= 5 * 1024 * 1024) 
                 .WithMessage("Faylın ölçüsü 5MB-dan çox ola bilməz.")
             .Must(file => file != null && AllowedContentTypes.Contains(file.ContentType))
                 .WithMessage("Yalnız PDF, DOCX, DOC və şəkil fayllarına icazə verilir.");

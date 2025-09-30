@@ -11,7 +11,7 @@ public sealed class CarFeatureAssignmentConfiguration : IEntityTypeConfiguration
         b.ToTable("CarFeatureAssignments");
         b.HasKey(x => x.Id);
 
-        // eyni feature-in eyni maşına iki dəfə qoşulmasının qarşısı
+        
         b.HasIndex(x => new { x.CarId, x.FeatureId }).IsUnique();
 
         b.HasOne(x => x.Car)

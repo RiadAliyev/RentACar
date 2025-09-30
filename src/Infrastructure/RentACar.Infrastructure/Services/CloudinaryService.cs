@@ -31,7 +31,7 @@ public class CloudinaryService : IFileService
         var uploadParams = new ImageUploadParams
         {
             File = new FileDescription(file.FileName, stream),
-            Folder = "rentacar" // Cloudinary-də qovluq adı
+            Folder = "rentacar" 
         };
 
         var uploadResult = await _cloudinary.UploadAsync(uploadParams);
@@ -47,7 +47,7 @@ public class CloudinaryService : IFileService
         if (string.IsNullOrEmpty(fileUrl))
             return false;
 
-        // PublicId çıxarmaq (Cloudinary-də faylın unikal adı)
+        
         var segments = new Uri(fileUrl).Segments;
         var fileName = segments.Last();
         var publicId = Path.GetFileNameWithoutExtension(fileName);

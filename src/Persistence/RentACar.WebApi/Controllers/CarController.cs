@@ -19,7 +19,7 @@ public class CarController : ControllerBase
         _carService = carService;
     }
 
-    /// Bütün maşınları gətirir
+    
     [HttpGet]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
     public async Task<IActionResult> GetAll()
@@ -29,7 +29,7 @@ public class CarController : ControllerBase
     }
 
     
-    /// Maşını Id ilə gətirir   
+     
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
@@ -40,10 +40,10 @@ public class CarController : ControllerBase
     }
 
 
-    /// Filtrlənmiş maşın siyahısı gətirir
-    [HttpGet("filter")]
+    
+    [HttpGet]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
-    public async Task<IActionResult> GetByFilter([FromForm] CarFilterDto filter)
+    public async Task<IActionResult> GetByFilter([FromQuery] CarFilterDto filter)
     {
         var response = await _carService.GetByFilterAsync(filter);
         return StatusCode((int)response.StatusCode, response);
@@ -88,7 +88,7 @@ public class CarController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    [HttpPost("{carId:guid}/images")]
+    [HttpPost]
     [Authorize(Policy = Permissions.Car.Update)]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> AddImages(Guid carId, [FromForm] CarImageUploadDto dto)
@@ -100,7 +100,7 @@ public class CarController : ControllerBase
         return StatusCode((int)res.StatusCode, res);
     }
 
-    [HttpPut("images/{imageId:guid}")]
+    [HttpPut]
     [Authorize(Policy = Permissions.Car.Update)]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> ReplaceImage(Guid imageId, [FromForm] CarImageReplaceDto dto)
@@ -112,7 +112,7 @@ public class CarController : ControllerBase
         return StatusCode((int)res.StatusCode, res);
     }
 
-    [HttpDelete("images/{imageId:guid}")]
+    [HttpDelete]
     [Authorize(Policy = Permissions.Car.Delete)]
     public async Task<IActionResult> DeleteImage(Guid imageId)
     {

@@ -9,8 +9,6 @@ public class CompanyGetDto
     public Guid OwnerId { get; set; }
     public string OwnerName { get; set; } = null!;
     public DateTime CreatedAt { get; set; }
-
-    // Əlavə məlumat
     public List<string> CarNames { get; set; } = new();
 }
 

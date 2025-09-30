@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Http;
 using RentACar.Application.DTOs.CarImageDtos;
 using RentACar.Application.Shared.Helpers;
 using static RentACar.Application.Shared.Permissions;
+using Microsoft.AspNetCore.Identity;
+using RentACar.Domain.Enums;
 
 namespace RentACar.Persistence.Services;
 
@@ -21,63 +23,96 @@ public class CarService : ICarService
     private readonly IFileStorage _files;
     private readonly IRepository<CarFeatureAssignment> _carFeatureAssignmentRepo;
     private readonly IHttpContextAccessor _http;
+    private readonly UserManager<AppUser> _userManager;
     private string? CurrentUserId =>
     _http.HttpContext?.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-    public CarService(IRepository<Domain.Entities.Car> carRepo, IRepository<Domain.Entities.CarImage> imgRepo, IFileStorage files, IRepository<CarFeatureAssignment> carFeatureAssignmentRepo, IHttpContextAccessor http)
+    public CarService(IRepository<Domain.Entities.Car> carRepo, 
+        IRepository<Domain.Entities.CarImage> imgRepo, 
+        IFileStorage files, 
+        IRepository<CarFeatureAssignment> carFeatureAssignmentRepo, 
+        IHttpContextAccessor http,
+        UserManager<AppUser> userManager)
     {
         _carRepo = carRepo;
         _imgRepo = imgRepo;
         _files = files;
         _carFeatureAssignmentRepo = carFeatureAssignmentRepo;
         _http = http;
+        _userManager = userManager;
 
     }
 
     public async Task<BaseResponse<CarGetDto>> CreateAsync(CarCreateDto dto)
     {
-        // ✅ Constraint check (bizim tərəfdən)
-        if (dto.OwnerId == null && dto.CompanyId == null)
+       
+        if (string.IsNullOrWhiteSpace(CurrentUserId))
+            return BaseResponse<CarGetDto>.FailResponse("Unauthorized", HttpStatusCode.Unauthorized);
+
+        var userId = Guid.Parse(CurrentUserId);
+        var user = await _userManager.Users
+            .Include(u => u.Company) 
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user is null)
+            return BaseResponse<CarGetDto>.FailResponse("User not found", HttpStatusCode.NotFound);
+
+      
+        Guid? enforcedOwnerId = null;
+        Guid? enforcedCompanyId = null;
+
+        switch (user.AccountType)
         {
-            return BaseResponse<CarGetDto>.FailResponse(
-                "Either OwnerId or CompanyId must be provided",
-                HttpStatusCode.BadRequest);
+            case AccountType.CarOwner:
+                
+                enforcedOwnerId = user.Id;
+                enforcedCompanyId = null;
+                break;
+
+            case AccountType.CompanyOwner:
+                
+                if (user.Company is null)
+                    return BaseResponse<CarGetDto>.FailResponse("You must create/link a company before adding cars.", HttpStatusCode.BadRequest);
+
+                enforcedOwnerId = null;
+                enforcedCompanyId = user.Company.Id; 
+                break;
+
+            default:
+                
+                return BaseResponse<CarGetDto>.FailResponse("You are not allowed to create cars.", HttpStatusCode.Forbidden);
         }
 
-        if (dto.OwnerId != null && dto.CompanyId != null)
-        {
-            return BaseResponse<CarGetDto>.FailResponse(
-                "A car cannot belong to both an Owner and a Company at the same time",
-                HttpStatusCode.BadRequest);
-        }
-
-        var car = new Domain.Entities.Car
+        
+        var car = new RentACar.Domain.Entities.Car
         {
             Id = Guid.NewGuid(),
-            Brand = dto.Brand,          // <- səndə necədirsə
-            Model = dto.Model,          // <- səndə necədirsə
-            Year = dto.Year,           // <- səndə necədirsə
-            DailyPrice = dto.DailyPrice,  // <- səndə necədirsə
+            OwnerId = enforcedOwnerId,      
+            CompanyId = enforcedCompanyId,    
+            Brand = dto.Brand,
+            Model = dto.Model,
+            Year = dto.Year,
+            TransmissionType = dto.TransmissionType,
+            FuelType = dto.FuelType,
+            Seats = dto.Seats,
+            DailyPrice = dto.DailyPrice,
             Location = dto.Location,
-            OwnerId = dto.OwnerId ,   // əgər null-dursa boş Guid yazılacaq
-            CompanyId = dto.CompanyId  ,  // (əgər varsa / lazım olsa)
+            IsApproved = dto.IsApproved,
             CreatedAt = DateTime.UtcNow
         };
 
         await _carRepo.AddAsync(car);
         await _carRepo.SaveChangeAsync();
 
-        // 2) Şəkilləri yüklə və CarImage kimi əlavə et
-        var createdImages = new List<RentACar.Domain.Entities.CarImage>();
+        
         if (dto.Images is { Count: > 0 })
         {
             foreach (var file in dto.Images)
             {
                 if (file == null || file.Length == 0) continue;
 
-                // Faylı diskinə yaz və relative URL al
                 var url = await _files.SaveCarImageAsync(file, car.Id);
-
                 var img = new RentACar.Domain.Entities.CarImage
                 {
                     Id = Guid.NewGuid(),
@@ -85,44 +120,37 @@ public class CarService : ICarService
                     ImageUrl = url,
                     CreatedAt = DateTime.UtcNow
                 };
-
                 await _imgRepo.AddAsync(img);
-                createdImages.Add(img);
             }
-
             await _imgRepo.SaveChangeAsync();
         }
 
+      
         if (dto.FeatureIds is { Count: > 0 })
         {
             foreach (var featureId in dto.FeatureIds)
             {
-                var carFeature = new CarFeatureAssignment
+                var cf = new CarFeatureAssignment
                 {
-                    Id = Guid.NewGuid(),   // əgər BaseEntity varsa lazım deyil
+                    Id = Guid.NewGuid(),
                     CarId = car.Id,
                     FeatureId = featureId,
                     CreatedAt = DateTime.UtcNow
                 };
-
-                await _carFeatureAssignmentRepo.AddAsync(carFeature);
+                await _carFeatureAssignmentRepo.AddAsync(cf);
             }
-
             await _carFeatureAssignmentRepo.SaveChangeAsync();
         }
 
-        // 3) Nəticə DTO
-        var result = new CarGetDto
-        {
-            Id = car.Id,
-            Brand = car.Brand,
-            Model = car.Model,
-            Year = car.Year,
-            DailyPrice = car.DailyPrice,
-            // başqa sahələrin varsa əlavə et...
-            
-        };
+        
+        var created = await _carRepo.GetAll(IsTracking: false)
+            .Include(x => x.Owner)
+            .Include(x => x.Company)
+            .Include(x => x.Images)
+            .Include(x => x.Features).ThenInclude(cf => cf.Feature)
+            .FirstAsync(x => x.Id == car.Id);
 
+        var result = MapToGetDto(created);
         return BaseResponse<CarGetDto>.SuccessResponse(result, "Car created successfully", HttpStatusCode.Created);
     }
 
@@ -132,7 +160,7 @@ public class CarService : ICarService
             .Include(x => x.Owner)
             .Include(x => x.Company)
             .Include(x => x.Images)
-            .Include(x => x.Features).ThenInclude(cf => cf.Feature) // ✅ Əlavə et
+            .Include(x => x.Features).ThenInclude(cf => cf.Feature) 
             .FirstOrDefaultAsync(x => x.Id == id);
 
         if (entity is null)
@@ -148,7 +176,7 @@ public class CarService : ICarService
             .Include(x => x.Owner)
             .Include(x => x.Company)
             .Include(x => x.Images)
-            .Include(x => x.Features).ThenInclude(cf => cf.Feature) // ✅ Burada düzəliş
+            .Include(x => x.Features).ThenInclude(cf => cf.Feature) 
             .ToListAsync();
 
         var result = entities.Select(MapToGetDto);
@@ -161,7 +189,7 @@ public class CarService : ICarService
         if (entity is null)
             return BaseResponse<CarGetDto>.FailResponse("Car not found", HttpStatusCode.NotFound);
 
-        // 🔑 yalnız sahib update edə bilər
+       
         if (entity.OwnerId.ToString() != CurrentUserId)
         {
             return BaseResponse<CarGetDto>.FailResponse("You can only update your own cars", HttpStatusCode.Forbidden);
@@ -192,7 +220,7 @@ public class CarService : ICarService
         if (entity is null)
             return BaseResponse<bool>.FailResponse("Car not found", HttpStatusCode.NotFound);
 
-        // 🔑 yalnız sahib silə bilər
+        
         if (entity.OwnerId.ToString() != CurrentUserId)
         {
             return BaseResponse<bool>.FailResponse("You can only delete your own cars", HttpStatusCode.Forbidden);
@@ -204,7 +232,7 @@ public class CarService : ICarService
         return BaseResponse<bool>.SuccessResponse(true, "Car deleted successfully", HttpStatusCode.OK);
     }
 
-    // 🔑 Mapping helper
+  
     private CarGetDto MapToGetDto(RentACar.Domain.Entities.Car e)
     {
         return new CarGetDto
@@ -238,14 +266,15 @@ public class CarService : ICarService
             .Include(x => x.Images)
             .AsQueryable();
 
+      
         if (!string.IsNullOrWhiteSpace(filter.Brand))
-            query = query.Where(x => x.Brand.Contains(filter.Brand));
+            query = query.Where(x => EF.Functions.Like(x.Brand, $"%{filter.Brand.Trim()}%"));
 
         if (!string.IsNullOrWhiteSpace(filter.Model))
-            query = query.Where(x => x.Model.Contains(filter.Model));
+            query = query.Where(x => EF.Functions.Like(x.Model, $"%{filter.Model.Trim()}%"));
 
         if (filter.Year.HasValue)
-            query = query.Where(x => x.Year == filter.Year);
+            query = query.Where(x => x.Year == filter.Year.Value);
 
         if (filter.TransmissionType.HasValue)
             query = query.Where(x => x.TransmissionType == filter.TransmissionType);
@@ -254,22 +283,47 @@ public class CarService : ICarService
             query = query.Where(x => x.FuelType == filter.FuelType);
 
         if (filter.MinPrice.HasValue)
-            query = query.Where(x => x.DailyPrice >= filter.MinPrice);
+            query = query.Where(x => x.DailyPrice >= filter.MinPrice.Value);
 
         if (filter.MaxPrice.HasValue)
-            query = query.Where(x => x.DailyPrice <= filter.MaxPrice);
+            query = query.Where(x => x.DailyPrice <= filter.MaxPrice.Value);
 
         if (!string.IsNullOrWhiteSpace(filter.Location))
-            query = query.Where(x => x.Location.Contains(filter.Location));
+            query = query.Where(x => EF.Functions.Like(x.Location, $"%{filter.Location.Trim()}%"));
 
-        if (filter.IsApproved.HasValue)
-            query = query.Where(x => x.IsApproved == filter.IsApproved);
+        
+
+        
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
+            var tokens = filter.Search
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            foreach (var t in tokens)
+            {
+                var term = t; 
+                              
+                var isYear = short.TryParse(term, out var yearVal);
+
+                query = query.Where(x =>
+                    EF.Functions.Like(x.Brand, $"%{term}%") ||
+                    EF.Functions.Like(x.Model, $"%{term}%") ||
+                    EF.Functions.Like(x.Location, $"%{term}%") ||
+                    (isYear && x.Year == yearVal)
+                );
+            }
+        }
+
+        
+        query = query.OrderByDescending(x => x.CreatedAt);
 
         var entities = await query.ToListAsync();
-
         var result = entities.Select(MapToGetDto);
 
-        return BaseResponse<IEnumerable<CarGetDto>>.SuccessResponse(result, "Filtered cars retrieved successfully", HttpStatusCode.OK);
+        return BaseResponse<IEnumerable<CarGetDto>>
+            .SuccessResponse(result, "Filtered cars retrieved successfully", HttpStatusCode.OK);
     }
 
     public async Task<BaseResponse<IEnumerable<CarImageGetDto>>> AddImagesAsync(Guid carId, IEnumerable<IFormFile> files)
@@ -281,7 +335,7 @@ public class CarService : ICarService
         if (car is null)
             return BaseResponse<IEnumerable<CarImageGetDto>>.FailResponse("Car not found", HttpStatusCode.NotFound);
 
-        // ✅ yalnız sahib şəkil əlavə edə bilər
+        
         if (car.OwnerId.ToString() != CurrentUserId)
             return BaseResponse<IEnumerable<CarImageGetDto>>.FailResponse("You can only add images to your own cars", HttpStatusCode.Forbidden);
 
@@ -329,7 +383,7 @@ public class CarService : ICarService
         if (car == null)
             return BaseResponse<CarImageGetDto>.FailResponse("Car not found", HttpStatusCode.NotFound);
 
-        // ✅ yalnız sahib şəkili dəyişə bilər
+        
         if (car.OwnerId.ToString() != CurrentUserId)
             return BaseResponse<CarImageGetDto>.FailResponse("You can only update images of your own cars", HttpStatusCode.Forbidden);
 
@@ -364,7 +418,7 @@ public class CarService : ICarService
         if (car == null)
             return BaseResponse<bool>.FailResponse("Car not found", HttpStatusCode.NotFound);
 
-        // ✅ yalnız sahib şəkili silə bilər
+        
         if (car.OwnerId.ToString() != CurrentUserId)
             return BaseResponse<bool>.FailResponse("You can only delete images of your own cars", HttpStatusCode.Forbidden);
 

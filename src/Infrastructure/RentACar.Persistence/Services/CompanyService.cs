@@ -66,7 +66,7 @@ public class CompanyService : ICompanyService
             .ToListAsync();
 
         var result = entities.Select(MapToGetDto);
-        return BaseResponse<IEnumerable<CompanyGetDto>>.SuccessResponse(result, "Companies retrieved successfully");
+        return BaseResponse<IEnumerable<CompanyGetDto>>.SuccessResponse(result, "Companies retrieved successfully", HttpStatusCode.OK);
     }
 
     public async Task<BaseResponse<CompanyGetDto>> UpdateAsync(Guid id, CompanyUpdateDto dto)
@@ -84,7 +84,7 @@ public class CompanyService : ICompanyService
         await _companyRepo.SaveChangeAsync();
 
         var result = MapToGetDto(entity);
-        return BaseResponse<CompanyGetDto>.SuccessResponse(result, "Company updated successfully");
+        return BaseResponse<CompanyGetDto>.SuccessResponse(result, "Company updated successfully", HttpStatusCode.OK);
     }
 
     public async Task<BaseResponse<bool>> DeleteAsync(Guid id)
@@ -96,10 +96,10 @@ public class CompanyService : ICompanyService
         _companyRepo.Delete(entity);
         await _companyRepo.SaveChangeAsync();
 
-        return BaseResponse<bool>.SuccessResponse(true, "Company deleted successfully");
+        return BaseResponse<bool>.SuccessResponse(true, "Company deleted successfully", HttpStatusCode.OK);
     }
 
-    // 🔑 Mapping helper
+    
     private CompanyGetDto MapToGetDto(Company e)
     {
         return new CompanyGetDto
@@ -109,7 +109,7 @@ public class CompanyService : ICompanyService
             RegistrationNumber = e.RegistrationNumber,
             Address = e.Address,
             OwnerId = e.OwnerId,
-            OwnerName = e.Owner?.FullName ?? string.Empty, // AppUser-də FullName varsa
+            OwnerName = e.Owner?.FullName ?? string.Empty, 
             CreatedAt = e.CreatedAt,
             CarNames = e.Cars?.Select(c => $"{c.Brand} {c.Model}").ToList() ?? new()
         };

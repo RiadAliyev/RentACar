@@ -22,6 +22,8 @@ public interface IRepository<T> where T : BaseEntity, new()
 
     void Delete(T entity);
 
+    Task<bool> AnyAsync(Expression<Func<T, bool>>? predicate = null);
+
     Task SaveChangeAsync();
 
 }

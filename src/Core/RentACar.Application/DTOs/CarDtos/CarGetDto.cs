@@ -20,8 +20,6 @@ public class CarGetDto
     public string Location { get; set; } = null!;
     public bool IsApproved { get; set; }
     public DateTime CreatedAt { get; set; }
-
-    // Əlavə məlumatlar
     public List<string> Features { get; set; } = new();
     public List<string> ImageUrls { get; set; } = new();
 }

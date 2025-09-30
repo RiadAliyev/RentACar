@@ -11,7 +11,7 @@ public sealed class BookingConfiguration : IEntityTypeConfiguration<Booking>
         b.ToTable("Bookings");
         b.HasKey(x => x.Id);
 
-        // tarixləri 'date' kimi saxla
+       
         b.Property(x => x.StartDate).HasColumnType("date");
         b.Property(x => x.EndDate).HasColumnType("date");
 

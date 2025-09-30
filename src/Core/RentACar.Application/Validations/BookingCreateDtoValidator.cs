@@ -11,8 +11,7 @@ public class BookingCreateDtoValidator : AbstractValidator<BookingCreateDto>
         RuleFor(x => x.StartDate)
             .LessThan(x => x.EndDate)
             .WithMessage("Start date must be before end date.");
-        RuleFor(x => x.TotalPrice).GreaterThanOrEqualTo(0);
-        RuleFor(x => x.DepositAmount).GreaterThanOrEqualTo(0);
+        
     }
 }
 

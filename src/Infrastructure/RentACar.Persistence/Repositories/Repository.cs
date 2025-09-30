@@ -100,4 +100,10 @@ public class Repository<T> : IRepository<T> where T : BaseEntity, new()
     {
         await _context.SaveChangesAsync();
     }
+
+    public async Task<bool> AnyAsync(Expression<Func<T, bool>>? predicate = null)
+    {
+        return predicate is null ? await Table.AnyAsync()
+                                 : await Table.AnyAsync(predicate);
+    }
 }

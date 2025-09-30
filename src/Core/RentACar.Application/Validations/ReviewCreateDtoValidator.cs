@@ -10,8 +10,7 @@ public class ReviewCreateDtoValidator : AbstractValidator<ReviewCreateDto>
         RuleFor(x => x.CarId)
             .NotEmpty().WithMessage("CarId is required.");
 
-        RuleFor(x => x.CustomerId)
-            .NotEmpty().WithMessage("CustomerId is required.");
+        
 
         RuleFor(x => x.Rating)
             .InclusiveBetween((byte)1, (byte)5)

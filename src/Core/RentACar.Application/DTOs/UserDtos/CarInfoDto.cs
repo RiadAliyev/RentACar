@@ -7,7 +7,7 @@ public sealed class CarInfoDto
     public string Brand { get; set; } = default!;
     public string Model { get; set; } = default!;
     public int Year { get; set; }
-    public decimal RentPrice { get; set; } // Car.DailyPrice
+    public decimal RentPrice { get; set; } 
 }
 
 public sealed class MeProfileDto
@@ -19,11 +19,8 @@ public sealed class MeProfileDto
     public bool EmailConfirmed { get; set; }
     public string? PhoneNumber { get; set; }
 
-    public AccountType AccountType { get; set; } // Buyer | Owner | Company
+    public AccountType AccountType { get; set; } 
     public List<string> Roles { get; set; } = new();
-    //public List<string> Permissions { get; set; } = new();
-
-    // Company/Owner üçün əlavə məlumat
     public int? CarCount { get; set; }
     public List<CarInfoDto>? Cars { get; set; }
 }

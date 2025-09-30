@@ -20,7 +20,7 @@ public sealed class CompanyConfiguration : IEntityTypeConfiguration<Company>
         b.HasIndex(x => x.RegistrationNumber).IsUnique();
         b.HasIndex(x => x.Name);
 
-        // 1 - many : Company -> Cars
+      
         b.HasMany(x => x.Cars)
          .WithOne(c => c.Company)
          .HasForeignKey(c => c.CompanyId)

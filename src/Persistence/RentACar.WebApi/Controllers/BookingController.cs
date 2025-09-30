@@ -12,7 +12,7 @@ namespace RentACar.WebApi.Controllers;
 public class BookingController : ControllerBase
 {
     private readonly IBookingService _bookingService;
-
+    
     public BookingController(IBookingService bookingService)
     {
         _bookingService = bookingService;
@@ -66,7 +66,7 @@ public class BookingController : ControllerBase
     }
 
     
-    [HttpDelete("{id:guid}")]
+    [HttpDelete("Admin")]
     [Authorize(Policy = Permissions.Booking.Delete)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
@@ -74,5 +74,13 @@ public class BookingController : ControllerBase
     {
         var response = await _bookingService.DeleteAsync(id);
         return StatusCode((int)response.StatusCode, response);
+    }
+
+    [HttpPost]
+    [Authorize(Policy = Permissions.Booking.Cancel)]
+    public async Task<IActionResult> Cancel(Guid id)
+    {
+        var r = await _bookingService.CancelAsync(id, byAdmin: false);
+        return StatusCode((int)r.StatusCode, r);
     }
 }

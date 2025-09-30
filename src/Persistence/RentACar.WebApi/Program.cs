@@ -21,7 +21,7 @@ using RentACar.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer(); // Swagger üçün vacibdir
@@ -82,7 +82,6 @@ builder.Services.Configure<CloudinarySettings>(
 builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JWTSettings"));
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JWTSettings>();
-
 
 
 
@@ -147,7 +146,10 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 });
 
 
-
+builder.Services.AddControllers().AddJsonOptions(o =>
+{
+    o.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());  // mes: car elec etdikde fuel type yerinde benzin falan yaza bilim deye
+});
 
 builder.Services.AddHttpContextAccessor();  // user servicede yazdigim myuser info ucun
 

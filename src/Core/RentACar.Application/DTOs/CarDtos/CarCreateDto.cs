@@ -18,8 +18,6 @@ public class CarCreateDto
     [Required]
     public string Location { get; set; } = null!;
     public bool IsApproved { get; set; }
-
-    // Əlavə: xüsusiyyətlər və şəkillər id-lər siyahısı
     public List<Guid>? FeatureIds { get; set; }
     public List<IFormFile>? Images { get; set; }
 }

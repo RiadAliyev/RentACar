@@ -18,7 +18,7 @@ public class AuthenticationController : ControllerBase
         _userService = userService;
     }
 
-    // POST api/<ValuesController>
+    
     [HttpPost]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.Created)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.BadRequest)]
@@ -29,7 +29,7 @@ public class AuthenticationController : ControllerBase
         return StatusCode((int)result.StatusCode, result);
     }
 
-    // POST api/<ValuesController>
+    
     [HttpPost]
     [ProducesResponseType(typeof(BaseResponse<TokenResponse>), (int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
@@ -53,7 +53,7 @@ public class AuthenticationController : ControllerBase
         return StatusCode((int)result.StatusCode, result);
     }
 
-    //  Resend Confirmation Email tezeden token gondermek ucun istifade edirem
+    
     [HttpPost]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
@@ -117,7 +117,7 @@ public class AuthenticationController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize] // JWT tələb olunur
+    [Authorize] 
     [ProducesResponseType(typeof(BaseResponse<MeProfileDto>), (int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(BaseResponse<MeProfileDto>), (int)HttpStatusCode.Unauthorized)]
     [ProducesResponseType(typeof(BaseResponse<MeProfileDto>), (int)HttpStatusCode.NotFound)]
@@ -128,7 +128,7 @@ public class AuthenticationController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize] // yalnız login olmuş user logout edə bilər
+    [Authorize] 
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
     public async Task<IActionResult> Logout()
     {

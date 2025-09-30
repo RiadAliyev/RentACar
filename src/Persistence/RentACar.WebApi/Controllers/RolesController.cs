@@ -21,9 +21,10 @@ public class RolesController : ControllerBase
         _roleService = roleService;
     }
 
-    // GET: api/<RolesController>
+    
     [Authorize(Policy = Permissions.Role.GetAllPermission)]
     [HttpGet("permissions")]
+    [ProducesResponseType(typeof(BaseResponse<TokenResponse>), (int)HttpStatusCode.OK)]
     public IActionResult GetAllPermissions()
     {
         var permissions = PermissionHelper.GetAllPermissions();

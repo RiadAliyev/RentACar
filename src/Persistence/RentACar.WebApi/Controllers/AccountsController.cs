@@ -40,8 +40,8 @@ public class AccountsController : ControllerBase
 
     [HttpGet("{id:guid}")]
     [Authorize(Policy = Permissions.Account.GetById)]
-    [ProducesResponseType(typeof(BaseResponse<UserDetailsDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(BaseResponse<UserDetailsDto>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(BaseResponse<UserDetailsDto>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(BaseResponse<UserDetailsDto>), (int)HttpStatusCode.NotFound)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var res = await _userService.GetUserByIdAsync(id);
@@ -50,6 +50,9 @@ public class AccountsController : ControllerBase
 
     [HttpPut("{id:guid}")]
     [Authorize(Policy = Permissions.Account.Update)]
+    [ProducesResponseType(typeof(BaseResponse<UserDetailsDto>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(BaseResponse<UserDetailsDto>), (int)HttpStatusCode.NotFound)]
+    [ProducesResponseType(typeof(BaseResponse<UserDetailsDto>), (int)HttpStatusCode.BadRequest)]
     public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UserUpdateDto dto)
     {
         var res = await _userService.UpdateUserAsync(id, dto);
@@ -58,6 +61,8 @@ public class AccountsController : ControllerBase
 
     [HttpDelete("{id:guid}")]
     [Authorize(Policy = Permissions.Account.Delete)]
+    [ProducesResponseType(typeof(BaseResponse<UserDetailsDto>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(BaseResponse<UserDetailsDto>), (int)HttpStatusCode.NotFound)]
     public async Task<IActionResult> DeleteUser(Guid id)
     {
         var res = await _userService.DeleteUserAsync(id);
@@ -66,6 +71,8 @@ public class AccountsController : ControllerBase
 
     [HttpPost("{id:guid}/lock")]
     [Authorize(Policy = Permissions.Account.Lock)]
+    [ProducesResponseType(typeof(BaseResponse<UserDetailsDto>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(BaseResponse<UserDetailsDto>), (int)HttpStatusCode.NotFound)]
     public async Task<IActionResult> LockUser(Guid id, [FromQuery] DateTimeOffset? endDate)
     {
         var res = await _userService.LockUserAsync(id, endDate ?? DateTimeOffset.UtcNow.AddDays(7));
@@ -74,6 +81,8 @@ public class AccountsController : ControllerBase
 
     [HttpPost("{id:guid}/unlock")]
     [Authorize(Policy = Permissions.Account.Unlock)]
+    [ProducesResponseType(typeof(BaseResponse<UserDetailsDto>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(BaseResponse<UserDetailsDto>), (int)HttpStatusCode.NotFound)]
     public async Task<IActionResult> UnlockUser(Guid id)
     {
         var res = await _userService.UnlockUserAsync(id);
@@ -82,6 +91,9 @@ public class AccountsController : ControllerBase
 
     [HttpPost("{id:guid}/reset-password")]
     [Authorize(Policy = Permissions.Account.ResetPassword)]
+    [ProducesResponseType(typeof(BaseResponse<UserDetailsDto>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(BaseResponse<UserDetailsDto>), (int)HttpStatusCode.NotFound)]
+    [ProducesResponseType(typeof(BaseResponse<UserDetailsDto>), (int)HttpStatusCode.BadRequest)]
     public async Task<IActionResult> ResetUserPassword(Guid id, [FromBody] AdminResetPasswordDto dto)
     {
         var res = await _userService.AdminResetPasswordAsync(id, dto.NewPassword);
@@ -90,6 +102,8 @@ public class AccountsController : ControllerBase
 
     [HttpGet("by-role/{roleName}")]
     [Authorize(Policy = Permissions.Account.GetByRole)]
+    [ProducesResponseType(typeof(BaseResponse<UserDetailsDto>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(BaseResponse<UserDetailsDto>), (int)HttpStatusCode.NotFound)]
     public async Task<IActionResult> GetUsersByRole(string roleName)
     {
         var res = await _userService.GetUsersByRoleAsync(roleName);

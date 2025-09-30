@@ -8,14 +8,14 @@ public class BaseResponse<T>
     public HttpStatusCode StatusCode { get; set; }
     public T? Data { get; set; }
 
-    // Constructor (statusCode əsaslı)
+
     public BaseResponse(HttpStatusCode statusCode)
     {
         StatusCode = statusCode;
         Success = (int)statusCode >= 200 && (int)statusCode < 300;
     }
 
-    // Constructor (error üçün)
+ 
     public BaseResponse(string message, HttpStatusCode statusCode)
     {
         Message = message;
@@ -23,7 +23,7 @@ public class BaseResponse<T>
         Success = (int)statusCode >= 200 && (int)statusCode < 300;
     }
 
-    // Constructor (success və ya fail istəyə görə)
+ 
     public BaseResponse(string message, bool isSuccess, HttpStatusCode statusCode)
     {
         Message = message;
@@ -31,7 +31,7 @@ public class BaseResponse<T>
         StatusCode = statusCode;
     }
 
-    // Constructor (data + success)
+  
     public BaseResponse(string message, T? data, HttpStatusCode statusCode)
     {
         Message = message;
@@ -40,7 +40,7 @@ public class BaseResponse<T>
         Success = (int)statusCode >= 200 && (int)statusCode < 300;
     }
 
-    // ✅ Helper metodlar (istifadə rahatlığı üçün)
+
     public static BaseResponse<T> SuccessResponse(T data, string? message = null, HttpStatusCode statusCode = HttpStatusCode.OK)
     {
         return new BaseResponse<T>(message ?? "Success", data, statusCode);
