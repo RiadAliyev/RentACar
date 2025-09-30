@@ -34,7 +34,8 @@ public static class ServiceRegistration
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IFileStorage, LocalFileStorage>();
-    
+        services.AddScoped<IRedisService, RedisService>();
+
 
 
 

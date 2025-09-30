@@ -10,8 +10,5 @@ public class UserRegisterDto
 
     public AccountType AccountType { get; set; } = AccountType.Customer;
 
-    public string? CompanyName { get; set; }
-    public string? CompanyRegistrationNumber { get; set; }
-    public string? CompanyAddress { get; set; }
 
 }

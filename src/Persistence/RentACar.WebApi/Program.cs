@@ -14,6 +14,10 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.Extensions.Options;
 using RentACar.Application.Shared.Helpers;
+using RentACar.Application.Shared;
+using StackExchange.Redis;
+using RentACar.Application.Abstracts.Services;
+using RentACar.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -132,22 +136,16 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
     };
 
-    //// 🔥 BURADA BLACKLIST CHECK EDİLİR
-    //options.Events = new JwtBearerEvents
-    //{
-    //    OnTokenValidated = async context =>
-    //    {
-    //        var redisService = context.HttpContext.RequestServices.GetRequiredService<IRedisService>();
-    //        var token = context.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-
-    //        var isBlacklisted = await redisService.GetAsync<bool>($"blacklist:{token}");
-    //        if (isBlacklisted)
-    //        {
-    //            context.Fail("Token is blacklisted");
-    //        }
-    //    }
-    //};
 });
+
+
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+    var redisConfig = builder.Configuration.GetConnectionString("Redis");  //redis appsettingden oxumaq ucun  lazomdor bu kodlar
+    return ConnectionMultiplexer.Connect(redisConfig);
+});
+
 
 
 
@@ -179,9 +177,10 @@ app.UseStaticFiles();
 
 app.UseAuthentication();
 
+app.UseMiddleware<JwtBlacklistMiddleware>();
+
 app.UseAuthorization();
 
 app.MapControllers();
-
 
 app.Run();

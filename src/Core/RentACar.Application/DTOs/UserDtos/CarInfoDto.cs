@@ -21,7 +21,7 @@ public sealed class MeProfileDto
 
     public AccountType AccountType { get; set; } // Buyer | Owner | Company
     public List<string> Roles { get; set; } = new();
-    public List<string> Permissions { get; set; } = new();
+    //public List<string> Permissions { get; set; } = new();
 
     // Company/Owner üçün əlavə məlumat
     public int? CarCount { get; set; }

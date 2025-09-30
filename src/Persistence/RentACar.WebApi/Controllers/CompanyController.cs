@@ -38,6 +38,7 @@ public class CompanyController : ControllerBase
 
 
     [HttpPost]
+    [Authorize(Roles = "CompanyOwner")]
     public async Task<IActionResult> Create([FromBody] CompanyCreateDto dto)
     {
         if (!ModelState.IsValid)

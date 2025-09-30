@@ -56,15 +56,27 @@ public static class Permissions
     public static class Account
     {
         public const string AddRole = "Account.AddRole";
-        public const string GetAll = "Account.GetAll";
+        public const string GetAllUsers = "Account.GetAllUsers";
         public const string GetById = "Account.GetById";
+        public const string Update = "Account.Update";
+        public const string Delete = "Account.Delete";
+        public const string Lock = "Account.Lock";
+        public const string Unlock = "Account.Unlock";
+        public const string ResetPassword = "Account.ResetPassword";
+        public const string GetByRole = "Account.GetByRole";
 
 
         public static List<string> All = new()
         {
             AddRole,
-            GetAll,
-            GetById
+            GetAllUsers,
+            GetById,
+            Update,
+            Delete,
+            Lock,
+            Unlock,
+            ResetPassword,
+            GetByRole
 
         };
     }
@@ -142,6 +154,21 @@ public static class Permissions
             Create,
             Delete,
             GetAllByCarId
+        };
+    }
+
+    public static class Company
+    {
+        public const string Create = "Company.Create";
+        public const string Update = "Company.Update";
+        public const string Delete = "Company.Delete";
+
+
+        public static List<string> All = new()
+        {
+            Create,
+            Delete,
+            Update
         };
     }
 }

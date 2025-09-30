@@ -40,19 +40,37 @@ public class AuthenticationController : ControllerBase
         return StatusCode((int)result.StatusCode, result);
     }
 
+    
+
     [HttpGet]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.BadRequest)]
     public async Task<IActionResult> ConfirmEmail([FromQuery] string userId, [FromQuery] string token)
     {
-        //// Tokeni URL-decode etmək MÜTLƏQ vacibdir!
-        //token = WebUtility.UrlDecode(token);
-
-        //var result = await _userService.ConfirmEmail(userId, token);
-
         var result = await _userService.ConfirmEmail(userId, token);
         if (!result.Success)
             return BadRequest(result);
+        return StatusCode((int)result.StatusCode, result);
+    }
+
+    //  Resend Confirmation Email tezeden token gondermek ucun istifade edirem
+    [HttpPost]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.BadRequest)]
+    public async Task<IActionResult> ResendConfirmation([FromBody] ResendConfirmDto dto)
+    {
+        var result = await _userService.ResendConfirmationEmailAsync(dto);
+        return StatusCode((int)result.StatusCode, result);
+    }
+
+    [Authorize] 
+    [HttpPost]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.BadRequest)]
+    public async Task<IActionResult> AddOrUpdateNumber([FromBody] AddNumberDto dto)
+    {
+        var result = await _userService.AddOrUpdateNumberAsync(dto);
         return StatusCode((int)result.StatusCode, result);
     }
 
@@ -67,7 +85,29 @@ public class AuthenticationController : ControllerBase
         return StatusCode((int)result.StatusCode, result);
     }
 
-    [HttpPost("ResetPassword")]
+    [Authorize]
+    [HttpPost]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.Unauthorized)]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+    {
+        var result = await _userService.ChangePasswordAsync(dto);
+        return StatusCode((int)result.StatusCode, result);
+    }
+
+    [HttpPost]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+    {
+        var result = await _userService.ForgotPasswordAsync(dto);
+        return StatusCode((int)result.StatusCode, result);
+
+    }
+
+    [HttpPost]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
@@ -76,14 +116,25 @@ public class AuthenticationController : ControllerBase
         return StatusCode((int)result.StatusCode, result);
     }
 
-    [HttpGet("me")]
+    [HttpGet]
     [Authorize] // JWT tələb olunur
     [ProducesResponseType(typeof(BaseResponse<MeProfileDto>), (int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(BaseResponse<MeProfileDto>), (int)HttpStatusCode.Unauthorized)]
     [ProducesResponseType(typeof(BaseResponse<MeProfileDto>), (int)HttpStatusCode.NotFound)]
-    public async Task<IActionResult> Me()
+    public async Task<IActionResult> UserAbout()
     {
         var res = await _userService.GetMeAsync();
         return StatusCode((int)res.StatusCode, res);
     }
+
+    [HttpPost]
+    [Authorize] // yalnız login olmuş user logout edə bilər
+    [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.OK)]
+    public async Task<IActionResult> Logout()
+    {
+        var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+        var result = await _userService.Logout(token);
+        return StatusCode((int)result.StatusCode, result);
+    }
+
 }

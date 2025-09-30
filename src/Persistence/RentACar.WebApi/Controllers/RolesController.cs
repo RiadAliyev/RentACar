@@ -22,7 +22,7 @@ public class RolesController : ControllerBase
     }
 
     // GET: api/<RolesController>
-    //[Authorize(Policy = Permissions.Role.GetAllPermission)]
+    [Authorize(Policy = Permissions.Role.GetAllPermission)]
     [HttpGet("permissions")]
     public IActionResult GetAllPermissions()
     {
@@ -32,7 +32,7 @@ public class RolesController : ControllerBase
 
     
     [HttpPost("Create Role")]
-    //[Authorize(Policy = Permissions.Role.Create)]
+    [Authorize(Policy = Permissions.Role.Create)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.PartialContent)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.BadRequest)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.Created)]
@@ -44,7 +44,7 @@ public class RolesController : ControllerBase
 
     
     [HttpPut("{id}")]
-    //[Authorize(Policy = Permissions.Role.Update)]
+    [Authorize(Policy = Permissions.Role.Update)]
     [ProducesResponseType(typeof(BaseResponse<TokenResponse>), (int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.BadRequest)]
@@ -59,7 +59,7 @@ public class RolesController : ControllerBase
 
     
     [HttpDelete("{roleName}")]
-    //[Authorize(Policy = Permissions.Role.Delete)]
+    [Authorize(Policy = Permissions.Role.Delete)]
     [ProducesResponseType(typeof(BaseResponse<TokenResponse>), (int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(BaseResponse<string>), (int)HttpStatusCode.NotFound)]
     public async Task<IActionResult> Delete(string roleName)
@@ -70,13 +70,12 @@ public class RolesController : ControllerBase
 
     
     [HttpGet]
-    //[Authorize(Policy = Permissions.Role.GetAllRoles)]
+    [Authorize(Policy = Permissions.Role.GetAllRoles)]
     [ProducesResponseType(typeof(BaseResponse<TokenResponse>), (int)HttpStatusCode.OK)]
     public IActionResult GetAllRoles()
     {
         var roles = _roleService.GetAllRoles();
         return Ok(roles);
     }
-
 
 }

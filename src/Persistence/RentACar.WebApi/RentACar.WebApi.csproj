@@ -16,10 +16,13 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.19" />
+    <PackageReference Include="StackExchange.Redis" Version="2.9.25" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.4" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Core\RentACar.Application\RentACar.Application.csproj" />
     <ProjectReference Include="..\..\Infrastructure\RentACar.Infrastructure\RentACar.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Infrastructure\RentACar.Persistence\RentACar.Persistence.csproj" />
   </ItemGroup>
