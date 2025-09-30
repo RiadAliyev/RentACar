@@ -8,10 +8,23 @@
 
   <ItemGroup>
     <Folder Include="Migrations\" />
-    <Folder Include="Contexts\" />
-    <Folder Include="Configurations\" />
-    <Folder Include="Repositories\" />
-    <Folder Include="Services\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.19" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.19">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.19" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\RentACar.Application\RentACar.Application.csproj" />
+    <ProjectReference Include="..\..\Core\RentACar.Domain\RentACar.Domain.csproj" />
+    <ProjectReference Include="..\RentACar.Infrastructure\RentACar.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
